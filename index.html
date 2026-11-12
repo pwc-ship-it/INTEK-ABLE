@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="format-detection" content="telephone=no,date=no,address=no">
+<meta name="theme-color" content="#ffffff">
+<title>BU3 · ABLE 현장 업무</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{
+  --bg:#f3f5f9; --surface:#ffffff; --surface2:#f8fafc; --line:#e2e8f0; --line2:#cbd5e1;
+  --text:#0f172a; --text2:#334155; --muted:#64748b; --faint:#94a3b8;
+  --pri:#2563eb; --pri-bg:#eff6ff; --pri-d:#1d4ed8;
+  --hq:#2563eb; --hq-bg:#dbeafe; --able:#ea580c; --able-bg:#ffedd5;
+  --ok:#15803d; --ok-bg:#dcfce7; --warn:#b45309; --warn-bg:#fef3c7; --bad:#dc2626; --bad-bg:#fee2e2;
+  --radius:10px; --shadow:0 1px 2px rgba(15,23,42,.06),0 1px 3px rgba(15,23,42,.08);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Malgun Gothic","Apple SD Gothic Neo",sans-serif;font-size:14px;line-height:1.5;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--pri)}
+
+/* ── 상단 ── */
+.top{position:sticky;top:0;z-index:50;background:var(--surface);border-bottom:1px solid var(--line)}
+.top-in{display:flex;align-items:center;gap:10px;padding:10px 16px;max-width:1600px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:16px;letter-spacing:-.2px;white-space:nowrap}
+.brand .logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#2563eb,#ea580c);color:#fff;display:grid;place-items:center;font-size:13px;font-weight:800}
+.brand small{font-weight:600;color:var(--muted);font-size:12px}
+.sync{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:var(--surface2);cursor:pointer;white-space:nowrap}
+.sync .dot{width:8px;height:8px;border-radius:50%;background:var(--faint)}
+.sync.ok .dot{background:#16a34a}.sync.busy .dot{background:#f59e0b}.sync.err .dot{background:#dc2626}.sync.local .dot{background:#a855f7}
+.spacer{flex:1}
+.tabs{display:flex;gap:4px;padding:0 16px;max-width:1600px;margin:0 auto;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{border:0;background:none;padding:10px 14px 11px;font-weight:700;font-size:15px;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap}
+.tab.on{color:var(--pri);border-bottom-color:var(--pri)}
+.tab .cnt{display:inline-block;margin-left:4px;font-size:11px;padding:1px 7px;border-radius:999px;background:var(--line);color:var(--text2);vertical-align:2px}
+.tab.on .cnt{background:var(--pri-bg);color:var(--pri)}
+.banner{display:none;background:#faf5ff;border-bottom:1px solid #e9d5ff;color:#6b21a8;font-size:13px;padding:8px 16px;text-align:center}
+.banner.show{display:block}
+.banner button{border:0;background:none;color:#7e22ce;font-weight:700;text-decoration:underline}
+
+main{max-width:1600px;margin:0 auto;padding:16px}
+.view{display:none}.view.on{display:block}
+
+/* ── 공통 요소 ── */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.card-h{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line);font-weight:800;font-size:15px}
+.card-b{padding:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;height:36px;padding:0 14px;border-radius:8px;border:1px solid var(--line2);background:var(--surface);font-weight:600;font-size:13px;color:var(--text2);white-space:nowrap;transition:background .12s,border-color .12s}
+.btn:hover{background:var(--surface2);border-color:var(--faint)}
+.btn.pri{background:var(--pri);border-color:var(--pri);color:#fff}
+.btn.pri:hover{background:var(--pri-d)}
+.btn.danger{color:var(--bad);border-color:#fecaca}
+.btn.danger:hover{background:var(--bad-bg)}
+.btn.sm{height:28px;padding:0 9px;font-size:12px;border-radius:6px}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.ghost:hover{background:var(--surface2)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.seg{display:inline-flex;border:1px solid var(--line2);border-radius:8px;overflow:hidden;background:var(--surface)}
+.seg button{border:0;background:none;height:34px;padding:0 12px;font-weight:600;font-size:13px;color:var(--muted);border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--pri);color:#fff}
+.inp,.sel,.ta{width:100%;height:40px;border:1px solid var(--line2);border-radius:8px;background:#fff;padding:0 11px;font-size:14px;outline:none;transition:border-color .12s,box-shadow .12s}
+.ta{height:auto;min-height:92px;padding:9px 11px;resize:vertical;line-height:1.55}
+.inp:focus,.sel:focus,.ta:focus{border-color:var(--pri);box-shadow:0 0 0 3px rgba(37,99,235,.15)}
+.lbl{display:block;font-size:12px;font-weight:700;color:var(--text2);margin:0 0 5px}
+.lbl .req{color:var(--bad)}
+.lbl .hint{font-weight:500;color:var(--faint);margin-left:4px}
+.fg{margin-bottom:12px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+.toolbar .inp,.toolbar .sel{width:auto;height:36px;font-size:13px}
+.chk{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--text2);white-space:nowrap;cursor:pointer}
+.chk input{width:16px;height:16px;accent-color:var(--pri)}
+.badge{display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:5px;font-size:11px;font-weight:700;white-space:nowrap;line-height:1}
+.b-hq{background:var(--hq-bg);color:#1e40af}.b-able{background:var(--able-bg);color:#9a3412}
+.b-ok{background:var(--ok-bg);color:var(--ok)}.b-warn{background:var(--warn-bg);color:var(--warn)}.b-bad{background:var(--bad-bg);color:var(--bad)}
+.b-go{background:#dbeafe;color:#1d4ed8}.b-plan{background:#e0e7ff;color:#4338ca}.b-done{background:#f1f5f9;color:#64748b}
+.b-gray{background:#f1f5f9;color:#475569}
+.site-chip{display:inline-flex;align-items:center;gap:5px;font-weight:700;font-size:12px;padding:2px 8px;border-radius:5px;background:var(--surface2);border:1px solid var(--line);white-space:nowrap}
+.site-chip i{width:8px;height:8px;border-radius:2px;display:inline-block}
+.muted{color:var(--muted)}.faint{color:var(--faint)}
+.empty{padding:40px 16px;text-align:center;color:var(--muted)}
+.empty b{display:block;font-size:15px;color:var(--text2);margin-bottom:4px}
+
+/* ── 일일보고 ── */
+.dr-grid{display:grid;grid-template-columns:400px 1fr;gap:16px;align-items:start}
+.dr-form{position:sticky;top:calc(var(--hh,96px) + 12px)}
+.dr-form.editing{outline:2px solid var(--warn);outline-offset:-1px}
+.edit-note{display:none;background:var(--warn-bg);color:var(--warn);font-size:12px;font-weight:700;padding:7px 16px}
+.dr-form.editing .edit-note{display:flex;align-items:center;justify-content:space-between}
+.today-strip{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px 14px;margin-bottom:12px}
+.today-strip .ts-t{font-weight:800;font-size:14px;margin-right:4px}
+.today-strip .ts-n{font-size:13px;color:var(--text2)}
+.today-strip .ts-n b{font-size:16px}
+.pchip{display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 9px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid var(--line2);background:#fff;cursor:pointer}
+.pchip.done{background:var(--ok-bg);border-color:#bbf7d0;color:var(--ok)}
+.pchip.todo{background:#fff7ed;border-color:#fed7aa;color:#c2410c}
+.grp{margin-bottom:14px}
+.grp-h{display:flex;align-items:center;gap:8px;padding:10px 4px 8px;font-weight:800;font-size:15px;position:sticky;top:var(--hh,96px);background:var(--bg);z-index:5}
+.grp-h .n{font-size:12px;color:var(--muted);font-weight:600}
+.grp-h .act{margin-left:auto}
+.rp{padding:14px 16px;margin-bottom:10px}
+.rp-h{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-bottom:10px}
+.rp-h .who{font-weight:800;font-size:15px}
+.rp-h .date{font-weight:700;color:var(--text2);font-size:13px}
+.rp-h .tools{margin-left:auto;display:flex;gap:4px}
+.rp-sec{display:grid;grid-template-columns:76px 1fr;gap:8px;padding:7px 0;border-top:1px dashed var(--line)}
+.rp-sec:first-of-type{border-top:0}
+.rp-sec .k{font-size:12px;font-weight:800;color:var(--muted);padding-top:1px}
+.rp-sec .k.p{color:var(--pri)}.rp-sec .k.n{color:#7c3aed}.rp-sec .k.i{color:var(--bad)}
+.rp-sec .v{white-space:pre-wrap;word-break:break-word;color:var(--text);font-size:14px}
+.rp-meta{font-size:11px;color:var(--faint);margin-top:6px;text-align:right}
+
+/* ── 간트 ── */
+.gantt-wrap{position:relative;overflow:auto;max-height:calc(100vh - 210px);min-height:300px;background:#fff;border-radius:var(--radius)}
+.gantt{position:relative}
+.g-head{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line2);display:flex}
+.g-corner{position:sticky;left:0;z-index:25;background:#fff;border-right:1px solid var(--line2);flex:none;display:flex;align-items:flex-end;padding:0 10px 6px;font-size:12px;font-weight:700;color:var(--muted)}
+.g-scale{position:relative;flex:none}
+.g-mon{position:absolute;top:0;height:24px;border-left:1px solid var(--line);font-size:12px;font-weight:800;padding:4px 6px;white-space:nowrap;overflow:hidden;color:var(--text2)}
+.g-day{position:absolute;top:24px;height:22px;font-size:10px;text-align:center;color:var(--muted);line-height:22px;border-left:1px solid #f1f5f9}
+.g-day.we{color:#dc2626;background:#fef2f2}
+.g-day.td{background:var(--pri);color:#fff;font-weight:800;border-radius:4px}
+.g-body{position:relative}
+.g-bg{position:absolute;top:0;bottom:0;pointer-events:none}
+.g-we{position:absolute;top:0;bottom:0;background:#f8fafc}
+.g-mline{position:absolute;top:0;bottom:0;border-left:1px solid var(--line)}
+.g-today{position:absolute;top:0;bottom:0;width:2px;background:var(--pri);opacity:.75;z-index:3}
+.g-row{display:flex;position:relative;border-bottom:1px solid #eef2f7}
+.g-row.site{background:#f8fafc;border-bottom:1px solid var(--line)}
+.g-lc{position:sticky;left:0;z-index:10;background:#fff;border-right:1px solid var(--line2);flex:none;padding:5px 10px;display:flex;flex-direction:column;justify-content:center;min-width:0}
+.g-row.site .g-lc{background:#f8fafc;flex-direction:row;align-items:center;justify-content:flex-start;gap:6px;font-weight:800;font-size:13px}
+.g-lc .nm{display:flex;align-items:center;gap:5px;font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden}
+.g-lc .nm span.t{overflow:hidden;text-overflow:ellipsis}
+.g-lc .sub{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.g-tl{position:relative;flex:none}
+.g-bar{position:absolute;top:7px;height:24px;border-radius:6px;color:#fff;font-size:11.5px;font-weight:700;line-height:24px;padding:0 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;z-index:4;box-shadow:0 1px 2px rgba(0,0,0,.15)}
+.g-bar.hq{background:var(--hq)}.g-bar.able{background:var(--able)}
+.g-bar.done{opacity:.42}
+.g-bar.plan{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.18) 0 6px,transparent 6px 12px)}
+.g-bar span{position:sticky;display:inline-block}
+.g-bar:hover{filter:brightness(1.08);z-index:6}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--text2);align-items:center}
+.legend i{display:inline-block;width:14px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+
+/* 목록 보기 */
+.tl-sec{margin-bottom:16px}
+.tl-sec h3{font-size:14px;margin:4px 2px 8px;display:flex;align-items:center;gap:6px}
+.tcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.tcard{padding:12px 14px;cursor:pointer;border-left:4px solid var(--hq)}
+.tcard.able{border-left-color:var(--able)}
+.tcard:hover{border-color:var(--line2)}
+.tcard .r1{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.tcard .r1 b{font-size:15px}
+.tcard .r1 .dd{margin-left:auto;font-weight:800;font-size:13px}
+.tcard .r2{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:13px;color:var(--text2)}
+
+/* ── 인원별 ── */
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px}
+.stat{padding:12px 14px}
+.stat .v{font-size:26px;font-weight:800;letter-spacing:-.5px;line-height:1.2}
+.stat .l{font-size:13px;font-weight:700;color:var(--text2)}
+.stat .s{font-size:11.5px;color:var(--muted);margin-top:2px}
+.feas{padding:12px 14px;margin-bottom:12px}
+.feas-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.feas-row .ttl{font-weight:800;margin-right:4px}
+.feas-row .inp,.feas-row .sel{width:auto;height:36px;font-size:13px}
+.feas-res{margin-top:10px;font-size:13px;line-height:1.7;display:none;padding:10px 12px;border-radius:8px;background:var(--surface2);border:1px solid var(--line)}
+.feas-res.show{display:block}
+.ptable{width:100%;border-collapse:separate;border-spacing:0;background:#fff;font-size:13px}
+.ptable th{position:sticky;top:var(--hh,96px);z-index:4;background:#f8fafc;color:var(--text2);font-weight:800;font-size:12px;text-align:left;padding:9px 10px;border-bottom:1px solid var(--line2);white-space:nowrap;cursor:pointer;user-select:none}
+.ptable th.num,.ptable td.num{text-align:right}
+.ptable th .ar{color:var(--pri)}
+.ptable td{padding:9px 10px;border-bottom:1px solid #eef2f7;vertical-align:middle}
+.ptable tr.pr{cursor:pointer}
+.ptable tr.pr:hover td{background:#f8fafc}
+.ptable tr.exp td{background:#fbfcfe;padding:0}
+.pname{font-weight:800;font-size:14px}
+.meter{display:flex;align-items:center;gap:8px;min-width:150px}
+.meter .bar{flex:1;height:8px;border-radius:99px;background:#eef2f7;overflow:hidden;position:relative}
+.meter .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:#16a34a}
+.meter .bar i.w{background:#f59e0b}.meter .bar i.b{background:#dc2626}
+.meter .num{font-weight:800;font-size:14px;min-width:62px;text-align:right;white-space:nowrap}
+.meter .num small{font-weight:600;color:var(--muted);font-size:11px}
+.hist{padding:10px 14px 14px 34px}
+.hist table{width:100%;border-collapse:collapse;font-size:12.5px}
+.hist th{text-align:left;color:var(--muted);font-size:11.5px;font-weight:700;padding:5px 8px;border-bottom:1px solid var(--line)}
+.hist td{padding:6px 8px;border-bottom:1px solid #f1f5f9}
+.pcards{display:none}
+.pcard{padding:12px 14px;margin-bottom:10px}
+.pcard .h{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.pcard .h .pname{font-size:16px}
+.pcard .h .st{margin-left:auto}
+.pcard .kv{display:grid;grid-template-columns:96px 1fr;gap:6px 8px;font-size:13px;align-items:center}
+.pcard .kv .k{color:var(--muted);font-weight:700;font-size:12px}
+.note{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.7}
+
+/* ── 모달 ── */
+.modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:520px;max-height:calc(100vh - 32px);display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.modal.wide{max-width:760px}
+.modal-h{display:flex;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line);font-weight:800;font-size:16px}
+.modal-h .x{margin-left:auto;border:0;background:none;font-size:22px;line-height:1;color:var(--muted);padding:2px 6px}
+.modal-b{padding:16px 18px;overflow:auto}
+.modal-f{display:flex;gap:8px;justify-content:flex-end;padding:12px 18px;border-top:1px solid var(--line);background:var(--surface2);border-radius:0 0 14px 14px}
+.modal-f .left{margin-right:auto}
+.check-box{margin-top:4px;padding:10px 12px;border-radius:8px;background:var(--surface2);border:1px solid var(--line);font-size:13px;line-height:1.65}
+.mtable{width:100%;border-collapse:collapse;font-size:13px}
+.mtable th{text-align:left;font-size:12px;color:var(--muted);padding:6px 6px;border-bottom:1px solid var(--line)}
+.mtable td{padding:5px 6px;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+.mtable .inp,.mtable .sel{height:34px;font-size:13px}
+.mtable input[type=color]{width:36px;height:30px;border:1px solid var(--line2);border-radius:6px;padding:2px;background:#fff}
+
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:#0f172a;color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:600;opacity:0;transition:all .2s;z-index:200;pointer-events:none;max-width:calc(100vw - 32px)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.err{background:#b91c1c}
+.fab{display:none}
+.pm-top{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:12px}
+.rules{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.chip{display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:999px;background:#fff;border:1px solid var(--line2);font-size:12px;font-weight:700;color:var(--text2)}
+.chip.pri{background:var(--pri-bg);border-color:#bfdbfe;color:var(--pri)}
+.lbl2{display:inline-flex;flex-direction:column;font-size:11px;font-weight:700;color:var(--muted);gap:3px}
+.tblwrap{overflow:auto;max-height:calc(100vh - var(--hh,96px) - 40px)}
+.xt{width:100%;border-collapse:separate;border-spacing:0;font-size:13px;background:#fff}
+.xt th{position:sticky;top:0;z-index:4;background:#f8fafc;color:var(--text2);font-weight:800;font-size:12px;text-align:left;padding:8px 10px;border-bottom:1px solid var(--line2);white-space:nowrap;cursor:pointer;user-select:none;line-height:1.3;vertical-align:bottom}
+.xt th small{font-weight:600;color:var(--muted);font-size:10.5px}
+.xt th .ar{color:var(--pri)}
+.xt td{padding:8px 10px;border-bottom:1px solid #eef2f7;vertical-align:middle;white-space:nowrap}
+.xt .num{text-align:right}
+.xt td.sm{font-size:12px;color:var(--text2)}
+.xt .stk{position:sticky;left:0;z-index:2;background:#fff;box-shadow:1px 0 0 var(--line)}
+.xt th.stk{z-index:6;background:#f8fafc}
+.xt td.hl{background:#f0f9ff}
+.xt .usc{background:#eff6ff}
+.xt tr.pr{cursor:pointer}
+.xt tr.pr:hover td{background:#f8fafc}
+.xt tr.exp td{background:#fbfcfe;padding:0;white-space:normal}
+.why{font-size:11px;color:var(--muted);max-width:180px;overflow:hidden;text-overflow:ellipsis}
+.xt .meter{min-width:140px}
+
+/* ── 반응형 ── */
+@media (max-width:1100px){
+  .dr-grid{grid-template-columns:340px 1fr}
+  .stats{grid-template-columns:repeat(3,1fr)}
+}
+@media (max-width:860px){
+  .dr-grid{grid-template-columns:1fr}
+  .dr-form{position:static}
+  .ptable,.ptwrap{display:none}
+  .pcards{display:block}
+}
+@media (max-width:640px){
+  body{font-size:15px}
+  .stats{grid-template-columns:repeat(3,1fr);gap:6px}.stat{padding:8px 10px}.stat .v{font-size:19px}.stat .l{font-size:11.5px;line-height:1.3}.stat .s{display:none}
+  .pm-top .seg{width:100%;display:flex}.pm-top .seg button{flex:1;padding:0 6px}
+  .top-in{padding:8px 12px;gap:8px}
+  .brand small{display:none}
+  .tabs{padding:0 6px}
+  .tab{font-size:14px;padding:9px 4px 10px;flex:1}
+  .tab .cnt,.tab .ic{display:none}
+  main{padding:12px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .stat .v{font-size:22px}
+  .row3{grid-template-columns:1fr 1fr}
+  .inp,.sel,.ta{font-size:16px}
+  .toolbar .inp,.toolbar .sel,.feas-row .inp,.feas-row .sel{font-size:15px}
+  .toolbar .grow{flex:1 1 100%}
+  .feas-row .inp,.feas-row .sel{flex:1 1 40%}
+  .gantt-wrap{max-height:calc(100vh - 230px)}
+  .rp-sec{grid-template-columns:1fr;gap:2px}
+  .tcards{grid-template-columns:1fr}
+  .modal-bg{padding:0;align-items:flex-end}
+  .modal{max-height:92vh;border-radius:16px 16px 0 0}
+  .modal-f{border-radius:0}
+  .hide-m{display:none!important}
+  .fab{display:flex;position:fixed;right:16px;bottom:calc(20px + env(safe-area-inset-bottom));z-index:60;width:56px;height:56px;border-radius:50%;border:0;background:var(--pri);color:#fff;font-size:28px;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(37,99,235,.45)}
+}
+@media print{.top,.toolbar,.fab,.dr-form,.rp-h .tools{display:none!important}.dr-grid{display:block}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand"><div class="logo">B3</div>BU3 · ABLE <small>현장 업무 공유</small></div>
+    <div class="spacer"></div>
+    <div class="sync" id="sync" title="클릭하면 지금 동기화"><span class="dot"></span><span id="syncTxt">연결 확인</span></div>
+    <button class="btn sm" id="btnSettings" title="설정">⚙<span class="hide-m">&nbsp;설정</span></button>
+  </div>
+  <nav class="tabs">
+    <button class="tab on" data-tab="report"><span class="ic">📝 </span>일일보고 작성</button>
+    <button class="tab" data-tab="trip"><span class="ic">📅 </span>출장일정 <span class="cnt" id="cntTrip">0</span></button>
+    <button class="tab" data-tab="person"><span class="ic">👤 </span>인원별 출장일</button>
+  </nav>
+</header>
+<div class="banner" id="banner">로컬 미리보기 모드 — 기록이 <b>이 기기에만</b> 저장됩니다. 공유하려면 <button id="bannerSet">⚙ 설정에서 Apps Script URL</button>을 입력하세요.</div>
+
+<main>
+<!-- ═════════ 1. 일일보고 ═════════ -->
+<section class="view on" id="view-report">
+  <div class="card today-strip" id="todayStrip"></div>
+  <div class="dr-grid">
+    <div class="card dr-form" id="drForm">
+      <div class="card-h">✏️ 일일보고 작성</div>
+      <div class="edit-note"><span>기존 보고를 수정 중입니다</span><button class="btn sm" id="drCancelEdit">새로 작성</button></div>
+      <div class="card-b">
+        <div class="row2">
+          <div class="fg"><label class="lbl">날짜 <span class="req">*</span></label><input type="date" class="inp" id="drDate"></div>
+          <div class="fg"><label class="lbl">사이트 <span class="req">*</span></label><select class="sel" id="drSite"></select></div>
+        </div>
+        <div class="row2">
+          <div class="fg"><label class="lbl">출장자(담당자) <span class="req">*</span></label><input class="inp" id="drAuthor" list="dlPersons" placeholder="이름" autocomplete="off"></div>
+          <div class="fg"><label class="lbl">소속</label><select class="sel" id="drOrg"><option value="hq">본사</option><option value="able">ABLE</option></select></div>
+        </div>
+        <div class="fg"><label class="lbl">진행상황 <span class="req">*</span><span class="hint">오늘 한 일</span></label><textarea class="ta" id="drProgress" rows="5" placeholder="예) 3호기 Calibration 완료&#10;4호기 I/O Check 진행 (70%)"></textarea></div>
+        <div class="fg"><label class="lbl">예정사항<span class="hint">내일/다음 계획</span></label><textarea class="ta" id="drPlan" rows="3" placeholder="예) 4호기 I/O Check 마무리, GRR 착수"></textarea></div>
+        <div class="fg"><label class="lbl">이슈·특이사항<span class="hint">선택</span></label><textarea class="ta" id="drIssue" rows="2" placeholder="고객 요청, 자재 이슈, 지원 필요 사항 등"></textarea></div>
+        <button class="btn pri" id="drSubmit" style="width:100%;height:44px;font-size:15px">저장</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="toolbar">
+        <div class="seg" id="drMode">
+          <button data-v="date" class="on">날짜별</button><button data-v="site">사이트별</button><button data-v="person">출장자별</button>
+        </div>
+        <select class="sel" id="drfSite"></select>
+        <select class="sel" id="drfPerson"></select>
+        <select class="sel" id="drfPeriod">
+          <option value="7">최근 7일</option><option value="30" selected>최근 30일</option><option value="90">최근 90일</option><option value="all">전체 기간</option>
+        </select>
+        <input class="inp grow" id="drfQ" placeholder="🔍 내용 검색" style="min-width:150px">
+        <button class="btn sm hide-m" id="drCsv" title="현재 목록을 CSV로 저장">⬇ CSV</button>
+      </div>
+      <div id="drList"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════ 2. 출장일정 ═════════ -->
+<section class="view" id="view-trip">
+  <div class="toolbar">
+    <button class="btn pri" id="tpAdd">＋ 출장 등록</button>
+    <div class="seg" id="tpView"><button data-v="gantt" class="on">간트</button><button data-v="list">목록</button></div>
+    <div class="seg" id="tpZoom"><button data-v="day">일</button><button data-v="week" class="on">주</button><button data-v="month">월</button></div>
+    <select class="sel" id="tpfOrg"><option value="all">전체 소속</option><option value="hq">본사</option><option value="able">ABLE</option></select>
+    <select class="sel" id="tpfCountry"></select>
+    <select class="sel" id="tpfSite"></select>
+    <input class="inp" id="tpfQ" placeholder="🔍 이름 검색" style="width:130px">
+    <label class="chk"><input type="checkbox" id="tpfPast">지난 일정</label>
+    <button class="btn" id="tpSites">사이트 관리</button>
+  </div>
+  <div class="legend" style="margin:-2px 2px 10px">
+    <span><i style="background:var(--hq)"></i>본사</span>
+    <span><i style="background:var(--able)"></i>ABLE</span>
+    <span><i style="background:repeating-linear-gradient(135deg,#94a3b8 0 3px,#cbd5e1 3px 6px)"></i>예정(빗금)</span>
+    <span><i style="background:#94a3b8;opacity:.5"></i>완료</span>
+    <span class="faint">막대를 누르면 수정할 수 있습니다</span>
+  </div>
+  <div id="tpBody"></div>
+</section>
+
+<!-- ═════════ 3. 인원별 출장일 ═════════ -->
+<section class="view" id="view-person">
+  <div class="pm-top">
+    <div class="seg" id="pmSub"><button data-v="us" class="on">🇺🇸 미국 체류 현황</button><button data-v="feas">출장 가능 조회</button><button data-v="country">🌏 국가별 현황</button></div>
+    <div class="rules" id="rulesBar"></div>
+  </div>
+  <div class="stats" id="pmStats"></div>
+  <div class="toolbar" id="pmTools"></div>
+  <div class="card tblwrap" id="pmWrap"><div id="pmBody"></div></div>
+  <div class="note" id="pmNote"></div>
+</section>
+</main>
+
+<button class="fab" id="fab" title="등록">＋</button>
+<datalist id="dlPersons"></datalist>
+<datalist id="dlTasks"><option value="셋업"><option value="양산대응"><option value="개조"><option value="안정화"><option value="SAT"><option value="A/S"></datalist>
+<div id="modalRoot"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ════════════════════════════════════════════════════════════
+   설정 — Apps Script 배포 후 웹앱 URL을 아래에 넣으면
+   모든 사용자가 별도 설정 없이 같은 데이터를 공유합니다.
+   (비워두면 각 기기의 ⚙설정에서 입력한 URL 사용, 그것도 없으면 로컬 미리보기 모드)
+═════════════════════════════════════════════════════════════ */
+var CONFIG = {
+  API_URL: 'https://script.google.com/macros/s/AKfycbydYJICorNNqW4RHvvCl6ek_244ZP1MxhnNP_focaHCte1mdWElngxezRUbZRYEm96f/exec'
+};
+var APP_VERSION = '20261111a';
+
+var LG = {SINGLE:90, ANNUAL:150, WARN:0.8};
+var REGIONS = {us:'미국', ca:'캐나다', pl:'폴란드', eu:'유럽(기타)', cn:'중국', vn:'베트남', etc:'기타 해외', kr:'국내'};
+var ORG = {hq:'본사', able:'ABLE'};
+var LSK = {api:'able_api_url', me:'able_me', cache:'able_cache_v1', local:'able_local_v1', pend:'able_pending_v1', ui:'able_ui_v1'};
+var DEFAULT_SITES = [
+  ['ESHD','us','#1558a0',150,150],['ESMI','us','#72128c'],['ESHG','us','#3c3489'],['MILS','us','#2e6e18'],
+  ['UC2','us','#4a7a10'],['현대JV','us','#1a6080'],['ESOT','ca','#7a4208'],['WA','pl','#8a2a10'],
+  ['ESNA','cn','#0a5e40'],['본사(국내)','kr','#475569']
+];
+
+/* ── 유틸 ── */
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function uid(p){return (p||'')+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function lsGet(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function pad(n){return String(n).padStart(2,'0');}
+function todayStr(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function dn(s){if(!s)return NaN;var p=String(s).slice(0,10).split('-');return Math.round(Date.UTC(+p[0],+p[1]-1,+p[2])/864e5);}
+function sdn(n){var d=new Date(n*864e5);return d.getUTCFullYear()+'-'+pad(d.getUTCMonth()+1)+'-'+pad(d.getUTCDate());}
+var WK=['일','월','화','수','목','금','토'];
+function wd(s){return WK[new Date(dn(s)*864e5).getUTCDay()];}
+function fmtMD(s){if(!s)return '';var p=s.split('-');return (+p[1])+'/'+(+p[2]);}
+function fmtFull(s){if(!s)return '';var p=s.split('-');return p[0]+'.'+p[1]+'.'+p[2]+' ('+wd(s)+')';}
+function fmtDot(s){if(!s)return '';return s.replace(/-/g,'.');}
+function days(a,b){return dn(b)-dn(a)+1;}
+function TD(){return dn(todayStr());}
+function orgBadge(o){return '<span class="badge '+(o==='able'?'b-able':'b-hq')+'">'+(ORG[o]||'본사')+'</span>';}
+function toast(msg,err){var t=$('toast');t.textContent=msg;t.className='toast show'+(err?' err':'');clearTimeout(toast._t);toast._t=setTimeout(function(){t.className='toast'+(err?' err':'');},2600);}
+function byKo(a,b){return String(a).localeCompare(String(b),'ko');}
+
+/* ══════════ 데이터 / 동기화 ══════════ */
+var DB = {sites:[],persons:[],trips:[],reports:[],config:[]};
+var TYPES = ['sites','persons','trips','reports','config'];
+var pending = lsGet(LSK.pend,[]);
+var syncing=false, lastSync=null, syncErr=false;
+
+function apiUrl(){return (lsGet(LSK.api,'')||CONFIG.API_URL||'').trim();}
+function isRemote(){return !!apiUrl();}
+
+function seedLocal(){
+  return {sites:DEFAULT_SITES.map(function(s,i){return {id:'site_'+i,name:s[0],region:s[1],color:s[2],order:i,lgAnnual:s[3]||'',lgSingle:s[4]||''};}),persons:[],trips:[],reports:[],config:[]};
+}
+function normalize(d){
+  var o={};TYPES.forEach(function(t){o[t]=Array.isArray(d&&d[t])?d[t].filter(function(r){return r&&r.id;}):[];});
+  o.sites.sort(function(a,b){return (+a.order||0)-(+b.order||0)||byKo(a.name,b.name);});
+  return o;
+}
+function applyPending(){
+  pending.forEach(function(op){
+    var arr=DB[op.type];if(!arr)return;
+    var i=arr.findIndex(function(r){return r.id===(op.record?op.record.id:op.id);});
+    if(op.action==='upsert'){if(i>=0)arr[i]=op.record;else arr.push(op.record);}
+    else if(op.action==='delete'&&i>=0)arr.splice(i,1);
+  });
+}
+function persistLocal(){
+  if(isRemote())lsSet(LSK.cache,DB);else lsSet(LSK.local,DB);
+}
+function setSync(state,txt){var s=$('sync');s.className='sync '+state;$('syncTxt').textContent=txt;}
+function syncLabel(){
+  if(!isRemote()){setSync('local','로컬 모드');return;}
+  if(syncErr){setSync('err',pending.length?'미전송 '+pending.length+'건':'연결 오류');return;}
+  if(pending.length){setSync('busy','전송 대기 '+pending.length);return;}
+  setSync('ok',lastSync?('동기화 '+pad(lastSync.getHours())+':'+pad(lastSync.getMinutes())):'연결됨');
+}
+
+function apiGet(){
+  return fetch(apiUrl()+'?action=load&_='+Date.now(),{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+  .then(function(j){if(!j||j.ok===false)throw new Error((j&&j.error)||'불러오기 실패');return j.data||j;});
+}
+function apiPost(body){
+  return fetch(apiUrl(),{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)})
+  .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+  .then(function(j){if(!j||!j.ok)throw new Error((j&&j.error)||'저장 실패');return j;});
+}
+function flushPending(){
+  if(!isRemote()||!pending.length)return Promise.resolve();
+  var op=pending[0];
+  return apiPost(op).then(function(){pending.shift();lsSet(LSK.pend,pending);return flushPending();});
+}
+function sync(silent){
+  $('banner').classList.toggle('show',!isRemote());
+  if(!isRemote()){
+    DB=normalize(lsGet(LSK.local,null)||seedLocal());lsSet(LSK.local,DB);syncLabel();renderAll();afterFirstLoad();return Promise.resolve();
+  }
+  if(syncing)return Promise.resolve();
+  syncing=true;if(!silent)setSync('busy','동기화 중…');
+  return flushPending().then(apiGet).then(function(d){
+    DB=normalize(d);applyPending();lsSet(LSK.cache,DB);lastSync=new Date();syncErr=false;
+  }).catch(function(e){
+    syncErr=true;if(!silent)toast('서버 연결 실패: '+e.message+' (마지막 데이터로 표시)',true);
+  }).then(function(){syncing=false;syncLabel();renderAll();afterFirstLoad();});
+}
+var firstLoaded=false;
+function afterFirstLoad(){if(firstLoaded)return;firstLoaded=true;if(!editingReport&&!$('drProgress').value)onAuthorChange();}
+function save(type,rec){
+  rec.updatedAt=new Date().toISOString();
+  var arr=DB[type],i=arr.findIndex(function(r){return r.id===rec.id;});
+  if(i>=0)arr[i]=rec;else arr.push(rec);
+  commit({action:'upsert',type:type,record:rec});
+}
+function remove(type,id){
+  var arr=DB[type],i=arr.findIndex(function(r){return r.id===id;});
+  if(i>=0)arr.splice(i,1);
+  commit({action:'delete',type:type,id:id});
+}
+function commit(op){
+  persistLocal();renderAll();
+  if(!isRemote())return;
+  pending.push(op);lsSet(LSK.pend,pending);syncLabel();
+  flushPending().then(function(){syncErr=false;lastSync=new Date();syncLabel();})
+  .catch(function(e){syncErr=true;syncLabel();toast('서버 저장 실패 — 기기에 보관 후 자동 재전송합니다 ('+e.message+')',true);});
+}
+
+/* ── 조회 헬퍼 ── */
+function siteById(id){return DB.sites.find(function(s){return s.id===id;});}
+function siteName(id){var s=siteById(id);return s?s.name:'(삭제된 사이트)';}
+function siteColor(id){var s=siteById(id);return s?s.color:'#94a3b8';}
+function siteRegion(id){var s=siteById(id);return s?s.region:'etc';}
+function siteChip(id){return '<span class="site-chip"><i style="background:'+esc(siteColor(id))+'"></i>'+esc(siteName(id))+'</span>';}
+function personByName(n){return DB.persons.find(function(p){return p.name===n;});}
+function orgOf(name){var p=personByName(name);if(p)return p.org;var t=DB.trips.find(function(t){return t.name===name;});return t?t.org:'hq';}
+function allNames(){
+  var m={};DB.persons.forEach(function(p){m[p.name]=1;});DB.trips.forEach(function(t){m[t.name]=1;});
+  return Object.keys(m).filter(Boolean).sort(byKo);
+}
+function tripStatus(t){var T=TD();if(dn(t.end)<T)return 'done';if(dn(t.start)>T)return 'plan';return 'go';}
+function currentTrip(name){var T=TD();return DB.trips.find(function(t){return t.name===name&&dn(t.start)<=T&&dn(t.end)>=T;});}
+function ensurePerson(name,org){
+  name=(name||'').trim();if(!name)return;
+  var p=personByName(name);
+  if(!p)save('persons',{id:uid('p_'),name:name,org:org||'hq',position:'',role:'',note:''});
+}
+
+/* ══════════ 미국 체류 계산 (LG 기준) ══════════
+   · 미국 사이트(지역=미국) 출장만 체류일로 계산. 캐나다·폴란드·중국 등은 별도 집계만.
+   · 어느 날이든 그날까지 365일 동안 미국 체류 ≤ 1년 한도, 1회 연속 체류 ≤ 1회 한도
+   · 귀국 없이 이어진 미국 출장(다음 출발일 ≤ 이전 귀국일+1)은 1회로 합산
+   · 사이트별 한도(예: ESHD 1회 150일)는 사이트 관리/기준 설정에서 지정, 없으면 기본값  */
+var DEF_RULES={annual:150,single:90,target:60,warn:0.8};
+var _memo={};
+function clearMemo(){_memo={};}
+function getRules(){
+  var c=(DB.config||[]).find(function(r){return r.id==='rules';}),o={};
+  try{o=c&&c.json?JSON.parse(c.json):{};}catch(e){o={};}
+  var R=Object.assign({},DEF_RULES,o);['annual','single','target'].forEach(function(k){R[k]=Math.max(1,+R[k]||DEF_RULES[k]);});
+  return R;
+}
+function siteRule(siteId){var R=getRules(),s=siteId?siteById(siteId):null;
+  return {annual:+(s&&s.lgAnnual)||R.annual,single:+(s&&s.lgSingle)||R.single,custom:!!(s&&(+s.lgAnnual||+s.lgSingle))};}
+function isUS(t){return siteRegion(t.siteId)==='us';}
+function buildCtx(name,mode,excl,extra){
+  var T=TD();
+  var all=DB.trips.filter(function(t){return t.name===name&&t.id!==excl&&(mode!=='started'||dn(t.start)<=T);});
+  if(extra)all=all.concat([extra]);
+  var us=all.filter(isUS),set=new Set(),last=-1e9;
+  us.forEach(function(t){for(var d=dn(t.start),e=dn(t.end);d<=e;d++)set.add(d);last=Math.max(last,dn(t.end));});
+  return {all:all,us:us,set:set,last:last,
+    ivs:all.map(function(t){return [dn(t.start),dn(t.end)];}),
+    usIv:us.map(function(t){return {s:dn(t.start),e:dn(t.end),single:siteRule(t.siteId).single};})};
+}
+function mergeStays(list){
+  list=list.slice().sort(function(a,b){return a.s-b.s;});var out=[];
+  list.forEach(function(x){var c=out[out.length-1];
+    if(c&&x.s<=c.e+1){c.e=Math.max(c.e,x.e);c.single=Math.min(c.single,x.single);c.n++;}
+    else out.push({s:x.s,e:x.e,single:x.single,n:1});});
+  out.forEach(function(o){o.len=o.e-o.s+1;});return out;
+}
+function rollingPeak(has,from,to){
+  var c=0,d;for(d=from-364;d<=from;d++)if(has(d))c++;
+  var mx=c,at=from;
+  for(d=from+1;d<=to;d++){c+=(has(d)?1:0)-(has(d-365)?1:0);if(c>mx){mx=c;at=d;}}
+  return {max:mx,at:at};
+}
+/* 미국 출장 계획(s~e, siteId) 가능 여부 */
+function checkPlan(ctx,siteId,s,e){
+  var R=siteRule(siteId);
+  for(var i=0;i<ctx.ivs.length;i++){var v=ctx.ivs[i];if(v[0]<=e&&v[1]>=s)return {ok:false,why:'overlap'};}
+  var st=mergeStays(ctx.usIv.concat([{s:s,e:e,single:R.single}])).find(function(o){return o.s<=s&&o.e>=s;});
+  if(st.len>st.single)return {ok:false,why:'single',stay:st};
+  var set=ctx.set,has=function(d){return set.has(d)||(d>=s&&d<=e);};
+  var pk=rollingPeak(has,s,Math.min(Math.max(ctx.last,e),e+364));
+  if(pk.max>R.annual)return {ok:false,why:'annual',peak:pk.max,at:pk.at};
+  return {ok:true,peak:pk.max,at:pk.at,stay:st};
+}
+var WHY={overlap:'기존 출장과 겹침',single:'1회 한도',annual:'최근 1년 한도'};
+function whyText(r,siteId){var R=siteRule(siteId);
+  if(r.why==='single')return '1회 한도 '+(r.stay?r.stay.single:R.single)+'일'+(r.stay&&r.stay.n>1?' (이어진 출장 합산)':'');
+  if(r.why==='annual')return '최근 1년 한도 '+R.annual+'일';return WHY[r.why]||'';}
+/* s 출발 시 최대 체류 가능 일수 */
+function maxStay(ctx,siteId,s){
+  var R=siteRule(siteId),f1=checkPlan(ctx,siteId,s,s);
+  if(!f1.ok)return {max:0,why:f1};
+  var lo=1,hi=R.single;
+  while(lo<hi){var m=Math.ceil((lo+hi)/2);if(checkPlan(ctx,siteId,s,s+m-1).ok)lo=m;else hi=m-1;}
+  var nx=lo<R.single?checkPlan(ctx,siteId,s,s+lo):{why:'single',stay:{single:R.single,n:1}};
+  return {max:lo,why:nx};
+}
+/* n일 연속 출장이 가능한 가장 빠른 출발일 (from부터 2년 탐색) */
+function earliestStart(ctx,siteId,n,from){
+  for(var s=from;s<from+730;s++){if(checkPlan(ctx,siteId,s,s+n-1).ok)return s;}
+  return null;
+}
+/* 인원별 미국 체류 현황 */
+function usStatus(name){
+  var key='us|'+name;if(_memo[key])return _memo[key];
+  var R=getRules(),T=TD(),ctx=buildCtx(name,'all');
+  var set=ctx.set,has=function(d){return set.has(d);};
+  var cur=0;for(var d=T-364;d<=T;d++)if(set.has(d))cur++;
+  var pk=rollingPeak(has,T,Math.max(T,ctx.last));
+  var stays=mergeStays(ctx.usIv),live=stays.filter(function(o){return o.e>=T-364;});
+  var longest=live.reduce(function(m,o){return o.len>m.len?o:m;},{len:0});
+  var singleBad=live.filter(function(o){return o.len>o.single;});
+  var curTrip=DB.trips.find(function(t){return t.name===name&&dn(t.start)<=T&&dn(t.end)>=T;});
+  var nextUS=ctx.us.filter(function(t){return dn(t.start)>T;}).sort(function(a,b){return dn(a.start)-dn(b.start);})[0]||null;
+  var exc=earliestStart(buildCtx(name,'started'),null,R.target,T);
+  var inc=earliestStart(ctx,null,R.target,T);
+  var st='ok',why=[];
+  if(pk.max>R.annual){st='bad';why.push('최근 1년 '+pk.max+'일 ('+fmtDot(sdn(pk.at))+') > '+R.annual+'일');}
+  singleBad.forEach(function(o){st='bad';why.push('연속 체류 '+o.len+'일 ('+fmtMD(sdn(o.s))+'~'+fmtMD(sdn(o.e))+') > '+o.single+'일');});
+  if(st==='ok'){
+    if(pk.max>=R.annual*R.warn){st='warn';why.push('최근 1년 최고 '+pk.max+'일 (한도의 80% 이상)');}
+    live.filter(function(o){return o.e>=T&&o.len>=o.single*R.warn;}).forEach(function(o){st='warn';why.push('연속 체류 '+o.len+'일 / '+o.single+'일');});
+  }
+  var r={cur:cur,peak:pk.max,peakAt:sdn(pk.at),remain:R.annual-pk.max,longest:longest.len?longest:null,
+    curTrip:curTrip,inUS:!!(curTrip&&isUS(curTrip)),nextUS:nextUS,
+    tgtExc:exc==null?null:sdn(exc),tgtInc:inc==null?null:sdn(inc),status:st,why:why,
+    hasUS:ctx.us.length>0,trips:ctx.us.length};
+  _memo[key]=r;return r;
+}
+function lgStatus(name){return usStatus(name);}
+/* 출장 등록 모달용 확인 문구 */
+function planCheckHtml(name,siteId,start,end,excl){
+  var s=dn(start),e=dn(end),n=e-s+1,R=siteRule(siteId),ctx=buildCtx(name,'all',excl),r=checkPlan(ctx,siteId,start?s:0,e);
+  var lim='<span class="muted">기준: 1년 '+R.annual+'일 · 1회 '+R.single+'일'+(R.custom?' ('+esc(siteName(siteId))+' 사이트 기준)':'')+'</span>';
+  var h;
+  if(r.ok){
+    var w=r.peak>=R.annual*getRules().warn||r.stay.len>=r.stay.single*getRules().warn;
+    h='<span class="badge '+(w?'b-warn':'b-ok')+'" style="height:22px;font-size:12px">'+(w?'가능 (주의)':'가능')+'</span> 미국 '+n+'일'
+      +(r.stay.n>1?' · 앞뒤 출장과 이어져 연속 <b>'+r.stay.len+'일</b>':'')+'<br>이 출장 포함 최근 1년 최고 <b>'+r.peak+'</b> / '+R.annual+'일 · 잔여 '+(R.annual-r.peak)+'일';
+  }else{
+    var ms=maxStay(ctx,siteId,s),ea=earliestStart(ctx,siteId,n,Math.max(TD(),s));
+    h='<span class="badge b-bad" style="height:22px;font-size:12px">불가</span> 미국 '+n+'일 — <b>'+esc(whyText(r,siteId))+'</b>'
+      +(r.why==='annual'?' 초과 ('+fmtDot(sdn(r.at))+' 기준 '+r.peak+'일)':'')
+      +'<br>▸ '+(ms.max?'이 출발일로 최대 <b>'+ms.max+'일</b> 가능 (복귀 '+fmtFull(sdn(s+ms.max-1))+')':'이 출발일로는 출발 불가 ('+esc(whyText(ms.why,siteId))+')')
+      +'<br>▸ '+n+'일 출장 가능한 가장 빠른 출발일: <b>'+(ea!=null?fmtFull(sdn(ea)):'2년 내 없음')+'</b>';
+  }
+  return h+'<br>'+lim;
+}
+
+/* ══════════ 렌더: 공통 ══════════ */
+var UI = Object.assign({pmSub:'us',pmOnlyUS:true,tab:'report',drMode:'date',tpView:(window.innerWidth<720?'list':'gantt'),tpZoom:'week',pmOrg:'all',pmState:'all',pmSort:'name',pmAsc:true},lsGet(LSK.ui,{}));
+function saveUI(){lsSet(LSK.ui,{pmSub:UI.pmSub,tab:UI.tab,drMode:UI.drMode,tpView:UI.tpView,tpZoom:UI.tpZoom,pmSort:UI.pmSort,pmAsc:UI.pmAsc});}
+var pmExpanded={};
+
+function fillSelect(el,opts,keep){
+  var v=el.value;el.innerHTML=opts.map(function(o){return '<option value="'+esc(o[0])+'">'+esc(o[1])+'</option>';}).join('');
+  if(keep&&opts.some(function(o){return o[0]===v;}))el.value=v;
+}
+function renderCommon(){
+  $('dlPersons').innerHTML=allNames().map(function(n){return '<option value="'+esc(n)+'">';}).join('');
+  var siteOpts=DB.sites.map(function(s){return [s.id,s.name+' ('+(REGIONS[s.region]||'기타')+')'];});
+  fillSelect($('drSite'),[['','사이트 선택']].concat(siteOpts),true);
+  fillSelect($('drfSite'),[['all','전체 사이트']].concat(DB.sites.map(function(s){return [s.id,s.name];})),true);
+  var usedRg=Object.keys(REGIONS).filter(function(k){return DB.sites.some(function(s){return s.region===k;});});
+  fillSelect($('tpfCountry'),[['all','전체 국가']].concat(usedRg.map(function(k){return [k,REGIONS[k]];})),true);
+  fillSelect($('tpfSite'),[['all','전체 사이트']].concat(DB.sites.map(function(s){return [s.id,s.name];})),true);
+  var authors={};DB.reports.forEach(function(r){authors[r.author]=1;});
+  fillSelect($('drfPerson'),[['all','전체 출장자']].concat(Object.keys(authors).sort(byKo).map(function(n){return [n,n];})),true);
+  var T=TD();$('cntTrip').textContent=DB.trips.filter(function(t){return dn(t.start)<=T&&dn(t.end)>=T;}).length+'명 출장중';
+}
+function renderAll(){
+  clearMemo();
+  renderCommon();
+  if(UI.tab==='report')renderReports();
+  if(UI.tab==='trip')renderTrips();
+  if(UI.tab==='person')renderPersons();
+}
+function switchTab(t){
+  UI.tab=t;saveUI();
+  document.querySelectorAll('.tab').forEach(function(b){b.classList.toggle('on',b.dataset.tab===t);});
+  document.querySelectorAll('.view').forEach(function(v){v.classList.toggle('on',v.id==='view-'+t);});
+  $('fab').style.display='';
+  renderAll();window.scrollTo(0,0);
+}
+
+/* ══════════ 1. 일일보고 ══════════ */
+var editingReport=null;
+function resetReportForm(keepWho){
+  editingReport=null;$('drForm').classList.remove('editing');$('drSubmit').textContent='저장';
+  $('drDate').value=todayStr();
+  ['drProgress','drPlan','drIssue'].forEach(function(id){$(id).value='';});
+  if(!keepWho){var me=lsGet(LSK.me,'');$('drAuthor').value=me;onAuthorChange();}
+}
+function onAuthorChange(){
+  var n=$('drAuthor').value.trim();if(!n)return;
+  var p=personByName(n);if(p)$('drOrg').value=p.org;else{var o=orgOf(n);if(o)$('drOrg').value=o;}
+  if(!editingReport){
+    var t=currentTrip(n);
+    if(!t){var T=TD();var past=DB.trips.filter(function(x){return x.name===n&&dn(x.start)<=T;}).sort(function(a,b){return b.end>a.end?1:-1;});t=past[0];}
+    if(t&&siteById(t.siteId))$('drSite').value=t.siteId;
+  }
+}
+function submitReport(){
+  var r={
+    id:editingReport?editingReport.id:uid('r_'),
+    date:$('drDate').value, siteId:$('drSite').value, author:$('drAuthor').value.trim(), org:$('drOrg').value,
+    progress:$('drProgress').value.trim(), plan:$('drPlan').value.trim(), issue:$('drIssue').value.trim(),
+    createdAt:editingReport?editingReport.createdAt:new Date().toISOString()
+  };
+  if(!r.date)return toast('날짜를 입력하세요',true);
+  if(!r.siteId)return toast('사이트를 선택하세요',true);
+  if(!r.author)return toast('출장자(담당자) 이름을 입력하세요',true);
+  if(!r.progress)return toast('진행상황을 입력하세요',true);
+  if(!editingReport){
+    var dup=DB.reports.find(function(x){return x.date===r.date&&x.author===r.author&&x.siteId===r.siteId;});
+    if(dup&&!confirm(r.author+'님의 '+fmtFull(r.date)+' '+siteName(r.siteId)+' 보고가 이미 있습니다.\n기존 보고를 이 내용으로 덮어쓸까요?'))return;
+    if(dup){r.id=dup.id;r.createdAt=dup.createdAt;}
+  }
+  ensurePerson(r.author,r.org);
+  save('reports',r);
+  lsSet(LSK.me,r.author);
+  toast(editingReport?'수정되었습니다':'일일보고가 저장되었습니다');
+  resetReportForm(true);
+}
+function editReport(id){
+  var r=DB.reports.find(function(x){return x.id===id;});if(!r)return;
+  if(UI.tab!=='report')switchTab('report');
+  editingReport=r;$('drForm').classList.add('editing');$('drSubmit').textContent='수정 저장';
+  $('drDate').value=r.date;$('drSite').value=r.siteId;$('drAuthor').value=r.author;$('drOrg').value=r.org||orgOf(r.author);
+  $('drProgress').value=r.progress||'';$('drPlan').value=r.plan||'';$('drIssue').value=r.issue||'';
+  $('drForm').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function reportText(r){
+  var t='['+fmtFull(r.date)+'] '+siteName(r.siteId)+' / '+r.author+' ('+(ORG[r.org]||'')+')\n';
+  t+='■ 진행상황\n'+(r.progress||'-')+'\n';
+  if(r.plan)t+='■ 예정사항\n'+r.plan+'\n';
+  if(r.issue)t+='■ 이슈·특이사항\n'+r.issue+'\n';
+  return t;
+}
+function copyText(t){
+  (navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(t):Promise.reject()).then(function(){toast('복사되었습니다 — 메신저에 붙여넣기 하세요');})
+  .catch(function(){var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');toast('복사되었습니다');}catch(e){toast('복사 실패',true);}a.remove();});
+}
+function filteredReports(){
+  var fs=$('drfSite').value,fp=$('drfPerson').value,per=$('drfPeriod').value,q=$('drfQ').value.trim().toLowerCase();
+  var from=per==='all'?-1e9:TD()-(+per)+1;
+  return DB.reports.filter(function(r){
+    if(fs!=='all'&&r.siteId!==fs)return false;
+    if(fp!=='all'&&r.author!==fp)return false;
+    if(dn(r.date)<from)return false;
+    if(q&&[r.progress,r.plan,r.issue,r.author,siteName(r.siteId)].join(' ').toLowerCase().indexOf(q)<0)return false;
+    return true;
+  }).sort(function(a,b){return a.date<b.date?1:a.date>b.date?-1:byKo(siteName(a.siteId),siteName(b.siteId))||byKo(a.author,b.author);});
+}
+function reportCard(r,hide){
+  var h='<div class="card rp"><div class="rp-h">';
+  if(hide!=='date')h+='<span class="date">'+fmtFull(r.date)+'</span>';
+  if(hide!=='site')h+=siteChip(r.siteId);
+  if(hide!=='person')h+='<span class="who">'+esc(r.author)+'</span>'+orgBadge(r.org);
+  else h+=orgBadge(r.org);
+  h+='<span class="tools"><button class="btn sm ghost" data-act="rcopy" data-id="'+esc(r.id)+'" title="메신저용 복사">📋</button><button class="btn sm ghost" data-act="redit" data-id="'+esc(r.id)+'">수정</button><button class="btn sm ghost" data-act="rdel" data-id="'+esc(r.id)+'" style="color:var(--bad)">삭제</button></span></div>';
+  h+='<div class="rp-sec"><div class="k p">진행상황</div><div class="v">'+esc(r.progress)+'</div></div>';
+  if(r.plan)h+='<div class="rp-sec"><div class="k n">예정사항</div><div class="v">'+esc(r.plan)+'</div></div>';
+  if(r.issue)h+='<div class="rp-sec"><div class="k i">이슈·특이</div><div class="v">'+esc(r.issue)+'</div></div>';
+  if(r.updatedAt)h+='<div class="rp-meta">최종 저장 '+esc(String(r.updatedAt).slice(0,16).replace('T',' '))+'</div>';
+  return h+'</div>';
+}
+function renderTodayStrip(){
+  var t=todayStr(),T=TD();
+  var onTrip=DB.trips.filter(function(x){return dn(x.start)<=T&&dn(x.end)>=T&&siteRegion(x.siteId)!=='kr';});
+  var names={};onTrip.forEach(function(x){names[x.name]=x;});
+  var wrote={};DB.reports.forEach(function(r){if(r.date===t)wrote[r.author]=1;});
+  var list=Object.keys(names).sort(byKo);
+  var done=list.filter(function(n){return wrote[n];}).length;
+  var h='<span class="ts-t">오늘 '+fmtFull(t)+'</span><span class="ts-n">출장중 <b>'+list.length+'</b>명 · 작성 <b style="color:var(--ok)">'+done+'</b> · 미작성 <b style="color:#c2410c">'+(list.length-done)+'</b></span>';
+  if(list.length){h+='<span style="flex-basis:100%;height:0"></span>';
+    list.forEach(function(n){h+='<span class="pchip '+(wrote[n]?'done':'todo')+'" data-act="pick" data-name="'+esc(n)+'" title="'+esc(siteName(names[n].siteId))+'">'+(wrote[n]?'✓ ':'')+esc(n)+'</span>';});}
+  else h+='<span class="faint" style="font-size:12px">— 출장일정 탭에 일정이 등록되면 작성 현황이 표시됩니다</span>';
+  $('todayStrip').innerHTML=h;
+}
+function renderReports(){
+  renderTodayStrip();
+  document.querySelectorAll('#drMode button').forEach(function(b){b.classList.toggle('on',b.dataset.v===UI.drMode);});
+  var list=filteredReports(),el=$('drList');
+  if(!list.length){el.innerHTML='<div class="card empty"><b>표시할 일일보고가 없습니다</b>조건을 바꾸거나 왼쪽(모바일은 위) 양식에서 작성해 주세요.</div>';return;}
+  var keyFn=UI.drMode==='site'?function(r){return r.siteId;}:UI.drMode==='person'?function(r){return r.author;}:function(r){return r.date;};
+  var groups={},order=[];
+  list.forEach(function(r){var k=keyFn(r);if(!groups[k]){groups[k]=[];order.push(k);}groups[k].push(r);});
+  if(UI.drMode==='site')order.sort(function(a,b){return byKo(siteName(a),siteName(b));});
+  if(UI.drMode==='person')order.sort(byKo);
+  var h='';
+  order.forEach(function(k){
+    var g=groups[k],title;
+    if(UI.drMode==='date')title=fmtFull(k)+(k===todayStr()?' <span class="badge b-go">오늘</span>':'');
+    else if(UI.drMode==='site')title=siteChip(k);
+    else title=esc(k)+' '+orgBadge(orgOf(k));
+    h+='<div class="grp"><div class="grp-h">'+title+'<span class="n">'+g.length+'건</span><button class="btn sm act" data-act="gcopy" data-key="'+esc(k)+'">📋 묶음 복사</button></div>';
+    g.forEach(function(r){h+=reportCard(r,UI.drMode);});
+    h+='</div>';
+  });
+  el.innerHTML=h;
+}
+function groupCopy(k){
+  var list=filteredReports().filter(function(r){return UI.drMode==='site'?r.siteId===k:UI.drMode==='person'?r.author===k:r.date===k;});
+  copyText(list.map(reportText).join('\n'));
+}
+function exportCsv(){
+  var rows=[['날짜','요일','사이트','출장자','소속','진행상황','예정사항','이슈·특이사항','최종저장']];
+  filteredReports().forEach(function(r){rows.push([r.date,wd(r.date),siteName(r.siteId),r.author,ORG[r.org]||'',r.progress,r.plan,r.issue,r.updatedAt||'']);});
+  var csv='﻿'+rows.map(function(r){return r.map(function(c){c=String(c==null?'':c);if(/^[=+\-@]/.test(c))c="'"+c;return '"'+c.replace(/"/g,'""')+'"';}).join(',');}).join('\r\n');
+  var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='일일보고_'+todayStr()+'.csv';a.click();
+}
+
+/* ══════════ 2. 출장일정 ══════════ */
+var ZOOM={day:30,week:13,month:5};
+var ganttScrolled=false;
+function filteredTrips(){
+  var fo=$('tpfOrg').value,fs=$('tpfSite').value,q=$('tpfQ').value.trim().toLowerCase(),past=$('tpfPast').checked,T=TD();
+  return DB.trips.filter(function(t){
+    if(fo!=='all'&&(t.org||'hq')!==fo)return false;
+    if(fs!=='all'&&t.siteId!==fs)return false;
+    var fc=$('tpfCountry').value;if(fc&&fc!=='all'&&siteRegion(t.siteId)!==fc)return false;
+    if(q&&t.name.toLowerCase().indexOf(q)<0)return false;
+    if(!past&&dn(t.end)<T)return false;
+    return true;
+  });
+}
+function renderTrips(){
+  document.querySelectorAll('#tpView button').forEach(function(b){b.classList.toggle('on',b.dataset.v===UI.tpView);});
+  document.querySelectorAll('#tpZoom button').forEach(function(b){b.classList.toggle('on',b.dataset.v===UI.tpZoom);});
+  $('tpZoom').style.display=UI.tpView==='gantt'?'':'none';
+  var list=filteredTrips();
+  if(!list.length){$('tpBody').innerHTML='<div class="card empty"><b>표시할 출장 일정이 없습니다</b>＋ 출장 등록으로 일정을 추가하세요.'+($('tpfPast').checked?'':' (지난 일정은 \'지난 일정\'을 체크하면 보입니다)')+'</div>';return;}
+  if(UI.tpView==='gantt')renderGantt(list);else renderTripList(list);
+}
+function renderGantt(list){
+  var px=ZOOM[UI.tpZoom],T=TD(),narrow=window.innerWidth<640,LW=narrow?118:210;
+  var minS=Math.min.apply(null,list.map(function(t){return dn(t.start);})),maxE=Math.max.apply(null,list.map(function(t){return dn(t.end);}));
+  var a=new Date(Math.min(minS,T-14)*864e5),b=new Date(Math.max(maxE,T+60)*864e5);
+  var start=Math.round(Date.UTC(a.getUTCFullYear(),a.getUTCMonth(),1)/864e5);
+  var end=Math.round(Date.UTC(b.getUTCFullYear(),b.getUTCMonth()+1,0)/864e5);
+  var nDays=end-start+1,W=nDays*px;
+  // 그룹: 사이트 → 인원
+  var bySite={};list.forEach(function(t){(bySite[t.siteId]=bySite[t.siteId]||{})[t.name]=(bySite[t.siteId][t.name]||[]).concat(t);});
+  var RGO=Object.keys(REGIONS);var siteOrder=Object.keys(bySite).sort(function(x,y){var a=siteById(x),b=siteById(y);return RGO.indexOf(siteRegion(x))-RGO.indexOf(siteRegion(y))||((a&&+a.order)||0)-((b&&+b.order)||0)||byKo(siteName(x),siteName(y));});
+  var h='<div class="card gantt-wrap" id="gwrap"><div class="gantt" style="width:'+(LW+W)+'px">';
+  // 헤더
+  h+='<div class="g-head"><div class="g-corner" style="width:'+LW+'px;height:46px">사이트 / 출장자</div><div class="g-scale" style="width:'+W+'px;height:46px">';
+  for(var d=start;d<=end;d++){
+    var dt=new Date(d*864e5),dd=dt.getUTCDate(),dw=dt.getUTCDay();
+    if(dd===1){var md=new Date(Date.UTC(dt.getUTCFullYear(),dt.getUTCMonth()+1,0)).getUTCDate();
+      h+='<div class="g-mon" style="left:'+((d-start)*px)+'px;width:'+(md*px)+'px">'+(dt.getUTCMonth()===0||d===start?dt.getUTCFullYear()+'년 ':'')+(dt.getUTCMonth()+1)+'월</div>';}
+    var show=px>=18||(px>=10&&dw===1)||(px<10&&(dd===1||dd===15));
+    var we=(dw===0||dw===6)&&px>=10;
+    if(show||we||d===T)h+='<div class="g-day'+(we?' we':'')+(d===T?' td':'')+'" style="left:'+((d-start)*px)+'px;width:'+Math.max(px,d===T?18:px)+'px">'+(show||d===T?dd:'')+'</div>';
+  }
+  h+='</div></div><div class="g-body">';
+  // 배경
+  h+='<div class="g-bg" style="left:'+LW+'px;width:'+W+'px">';
+  for(d=start;d<=end;d++){var w2=new Date(d*864e5).getUTCDay();if(px>=10&&(w2===0||w2===6))h+='<div class="g-we" style="left:'+((d-start)*px)+'px;width:'+px+'px"></div>';if(new Date(d*864e5).getUTCDate()===1)h+='<div class="g-mline" style="left:'+((d-start)*px)+'px"></div>';}
+  if(T>=start&&T<=end)h+='<div class="g-today" style="left:'+((T-start)*px+px/2-1)+'px"></div>';
+  h+='</div>';
+  siteOrder.forEach(function(sid){
+    var people=Object.keys(bySite[sid]).sort(function(x,y){
+      var a=bySite[sid][x],b=bySite[sid][y];var oa=(a[0].org==='able'?1:0),ob=(b[0].org==='able'?1:0);
+      return oa-ob||Math.min.apply(null,a.map(function(t){return dn(t.start);}))-Math.min.apply(null,b.map(function(t){return dn(t.start);}));});
+    h+='<div class="g-row site" style="height:30px"><div class="g-lc" style="width:'+LW+'px"><i style="width:10px;height:10px;border-radius:3px;background:'+esc(siteColor(sid))+'"></i>'+esc(siteName(sid))+'<span class="badge b-gray">'+(REGIONS[siteRegion(sid)]||'기타')+'</span><span class="faint" style="font-weight:600;font-size:11px">'+people.length+'명</span></div><div class="g-tl" style="width:'+W+'px"></div></div>';
+    people.forEach(function(nm){
+      var ts=bySite[sid][nm].sort(function(x,y){return dn(x.start)-dn(y.start);});
+      var org=ts[0].org||'hq';
+      var tasks={};ts.forEach(function(t){if(t.task)tasks[t.task]=1;});
+      h+='<div class="g-row" style="height:38px"><div class="g-lc" style="width:'+LW+'px"><div class="nm"><span class="t">'+esc(nm)+'</span>'+orgBadge(org)+'</div><div class="sub">'+esc(Object.keys(tasks).join(', ')||'-')+'</div></div><div class="g-tl" style="width:'+W+'px">';
+      ts.forEach(function(t){
+        var s=Math.max(dn(t.start),start),e=Math.min(dn(t.end),end);if(e<s)return;
+        var n=days(t.start,t.end),st=tripStatus(t),bw=(e-s+1)*px;
+        var txt=bw>150?(esc(nm)+' · '+fmtMD(t.start)+'~'+fmtMD(t.end)+' ('+n+'일)'):bw>60?(fmtMD(t.start)+'~'+fmtMD(t.end)):bw>26?n+'일':'';
+        var tip=nm+' ('+(ORG[org]||'')+') | '+siteName(t.siteId)+(t.task?' · '+t.task:'')+'\n'+fmtFull(t.start)+' ~ '+fmtFull(t.end)+' · '+n+'일'+(t.note?'\n'+t.note:'');
+        h+='<div class="g-bar '+(org==='able'?'able':'hq')+' '+st+'" data-act="tedit" data-id="'+esc(t.id)+'" title="'+esc(tip)+'" style="left:'+((s-start)*px)+'px;width:'+Math.max(bw,6)+'px"><span style="left:'+(LW+6)+'px">'+txt+'</span></div>';
+      });
+      h+='</div></div>';
+    });
+  });
+  h+='</div></div></div>';
+  var keepX=$('gwrap')?$('gwrap').scrollLeft:null;
+  $('tpBody').innerHTML=h;
+  var gw=$('gwrap');
+  if(!ganttScrolled||keepX===null){gw.scrollLeft=Math.max(0,(T-start-7)*px);ganttScrolled=true;}else gw.scrollLeft=keepX;
+}
+function ddLabel(t){var T=TD(),s=dn(t.start),e=dn(t.end);
+  if(s>T)return '<span style="color:#4338ca">D-'+(s-T)+'</span>';
+  if(e>=T)return '<span style="color:#1d4ed8">'+(T-s+1)+'일째 · 귀국 D-'+(e-T)+'</span>';
+  return '<span class="faint">완료</span>';}
+function renderTripList(list){
+  var sec={go:[],plan:[],done:[]};list.forEach(function(t){sec[tripStatus(t)].push(t);});
+  sec.go.sort(function(a,b){return dn(a.end)-dn(b.end);});sec.plan.sort(function(a,b){return dn(a.start)-dn(b.start);});sec.done.sort(function(a,b){return dn(b.end)-dn(a.end);});
+  var h='';[['go','✈️ 출장중','b-go'],['plan','🗓 예정','b-plan'],['done','✔ 완료','b-done']].forEach(function(s){
+    var arr=sec[s[0]];if(!arr.length)return;
+    h+='<div class="tl-sec"><h3>'+s[1]+' <span class="badge '+s[2]+'">'+arr.length+'</span></h3><div class="tcards">';
+    arr.forEach(function(t){
+      var lg='';if(siteRegion(t.siteId)==='us'&&s[0]!=='done'){var st=lgStatus(t.name);if(st.status!=='ok')lg='<span class="badge '+(st.status==='bad'?'b-bad':'b-warn')+'">미국 '+(st.status==='bad'?'초과':'주의')+'</span>';}
+      h+='<div class="card tcard '+(t.org==='able'?'able':'')+'" data-act="tedit" data-id="'+esc(t.id)+'"><div class="r1"><b>'+esc(t.name)+'</b>'+orgBadge(t.org)+lg+'<span class="dd">'+ddLabel(t)+'</span></div>';
+      h+='<div class="r2"><span class="badge b-gray">'+(REGIONS[siteRegion(t.siteId)]||'기타')+'</span>'+siteChip(t.siteId)+(t.task?'<span>'+esc(t.task)+'</span>':'')+'<span>'+fmtDot(t.start)+' ~ '+fmtDot(t.end)+'</span><b>'+days(t.start,t.end)+'일</b></div>';
+      if(t.note)h+='<div class="muted" style="font-size:12px;margin-top:5px">'+esc(t.note)+'</div>';
+      h+='</div>';
+    });
+    h+='</div></div>';
+  });
+  $('tpBody').innerHTML=h;
+}
+
+/* ── 모달 ── */
+function openModal(title,body,foot,wide){
+  $('modalRoot').innerHTML='<div class="modal-bg" id="mbg"><div class="modal'+(wide?' wide':'')+'"><div class="modal-h">'+title+'<button class="x" data-act="mclose">×</button></div><div class="modal-b">'+body+'</div>'+(foot?'<div class="modal-f">'+foot+'</div>':'')+'</div></div>';
+  $('mbg').addEventListener('mousedown',function(e){if(e.target.id==='mbg')closeModal();});
+}
+function closeModal(){$('modalRoot').innerHTML='';}
+
+function openTrip(id,preset){
+  var t=id?DB.trips.find(function(x){return x.id===id;}):null;
+  t=t||Object.assign({id:'',name:'',org:'hq',siteId:'',task:'',start:todayStr(),end:sdn(TD()+29),note:''},preset||{});
+  var sOpts=DB.sites.map(function(s){return '<option value="'+esc(s.id)+'"'+(s.id===t.siteId?' selected':'')+'>'+esc(s.name)+' ('+(REGIONS[s.region]||'기타')+')</option>';}).join('');
+  var b='<div class="row2"><div class="fg"><label class="lbl">출장자 <span class="req">*</span></label><input class="inp" id="mtName" list="dlPersons" value="'+esc(t.name)+'" autocomplete="off" placeholder="이름"></div>'
+   +'<div class="fg"><label class="lbl">소속</label><select class="sel" id="mtOrg"><option value="hq"'+(t.org!=='able'?' selected':'')+'>본사</option><option value="able"'+(t.org==='able'?' selected':'')+'>ABLE</option></select></div></div>'
+   +'<div class="row2"><div class="fg"><label class="lbl">사이트 <span class="req">*</span></label><select class="sel" id="mtSite"><option value="">선택</option>'+sOpts+'</select></div>'
+   +'<div class="fg"><label class="lbl">업무</label><input class="inp" id="mtTask" list="dlTasks" value="'+esc(t.task)+'" placeholder="셋업 / 양산대응 …"></div></div>'
+   +'<div class="row2"><div class="fg"><label class="lbl">출발일 <span class="req">*</span></label><input type="date" class="inp" id="mtStart" value="'+esc(t.start)+'"></div>'
+   +'<div class="fg"><label class="lbl">귀국일 <span class="req">*</span></label><input type="date" class="inp" id="mtEnd" value="'+esc(t.end)+'"></div></div>'
+   +'<div class="fg"><label class="lbl">비고</label><input class="inp" id="mtNote" value="'+esc(t.note)+'" placeholder="항공편, 숙소, 교대 인원 등"></div>'
+   +'<div class="check-box" id="mtCheck"></div>';
+  var f=(t.id?'<button class="btn danger left" data-act="tdel" data-id="'+esc(t.id)+'">삭제</button>':'')+'<button class="btn" data-act="mclose">취소</button><button class="btn pri" data-act="tsave" data-id="'+esc(t.id)+'">'+(t.id?'수정 저장':'등록')+'</button>';
+  openModal(t.id?'출장 수정':'출장 등록',b,f);
+  ['mtName','mtSite','mtStart','mtEnd'].forEach(function(k){$(k).addEventListener('input',function(){tripCheck(t.id);});$(k).addEventListener('change',function(){tripCheck(t.id);});});
+  $('mtName').addEventListener('change',function(){var p=personByName(this.value.trim());if(p)$('mtOrg').value=p.org;else{var x=DB.trips.find(function(z){return z.name===$('mtName').value.trim();});if(x)$('mtOrg').value=x.org;}});
+  tripCheck(t.id);
+}
+function tripCheck(id){
+  var n=$('mtName').value.trim(),sid=$('mtSite').value,s=$('mtStart').value,e=$('mtEnd').value,el=$('mtCheck');
+  if(!s||!e){el.innerHTML='<span class="muted">출발일·귀국일을 입력하세요.</span>';return;}
+  if(dn(e)<dn(s)){el.innerHTML='<span style="color:var(--bad);font-weight:700">귀국일이 출발일보다 빠릅니다.</span>';return;}
+  var h='출장 기간 <b>'+days(s,e)+'일</b> ('+fmtFull(s)+' ~ '+fmtFull(e)+')';
+  var rg=sid?siteRegion(sid):'';
+  if(n&&rg==='us'){h+='<hr style="border:0;border-top:1px solid var(--line);margin:8px 0">'+planCheckHtml(n,sid,s,e,id||null);}
+  else if(rg==='us')h+=' · <span class="muted">이름을 입력하면 LG 기준을 확인합니다</span>';
+  else if(rg)h+=' · <span class="muted">'+(REGIONS[rg]||'기타')+' — LG 미국 기준 비대상 (국가별 현황에서 별도 집계)</span>';
+  var ov=n?DB.trips.filter(function(x){return x.name===n&&x.id!==id&&dn(x.start)<=dn(e)&&dn(x.end)>=dn(s);}):[];
+  if(ov.length)h+='<br><span style="color:var(--warn);font-weight:700">⚠ 기간이 겹치는 일정: '+ov.map(function(x){return esc(siteName(x.siteId))+' '+fmtMD(x.start)+'~'+fmtMD(x.end);}).join(', ')+'</span>';
+  el.innerHTML=h;
+}
+function saveTrip(id){
+  var t={id:id||uid('t_'),name:$('mtName').value.trim(),org:$('mtOrg').value,siteId:$('mtSite').value,task:$('mtTask').value.trim(),start:$('mtStart').value,end:$('mtEnd').value,note:$('mtNote').value.trim()};
+  if(!t.name)return toast('출장자 이름을 입력하세요',true);
+  if(!t.siteId)return toast('사이트를 선택하세요',true);
+  if(!t.start||!t.end||dn(t.end)<dn(t.start))return toast('기간을 확인하세요',true);
+  ensurePerson(t.name,t.org);
+  var p=personByName(t.name);if(p&&p.org!==t.org){p.org=t.org;save('persons',p);}
+  save('trips',t);closeModal();toast(id?'출장 일정이 수정되었습니다':'출장 일정이 등록되었습니다');
+}
+
+function openSites(){
+  var rows=DB.sites.map(function(s){
+    var used=DB.trips.filter(function(t){return t.siteId===s.id;}).length+DB.reports.filter(function(r){return r.siteId===s.id;}).length;
+    return '<tr data-sid="'+esc(s.id)+'"><td><input type="color" value="'+esc(s.color||'#64748b')+'" class="sc"></td><td><input class="inp sn" value="'+esc(s.name)+'"></td><td><select class="sel sr">'+Object.keys(REGIONS).map(function(k){return '<option value="'+k+'"'+(s.region===k?' selected':'')+'>'+REGIONS[k]+'</option>';}).join('')+'</select></td><td><input class="inp so" type="number" value="'+esc(s.order||0)+'" style="width:64px"></td><td>'+(used?'<span class="faint" style="font-size:11px">사용 '+used+'</span>':'<button class="btn sm danger" data-act="sdel" data-id="'+esc(s.id)+'">삭제</button>')+'</td></tr>';
+  }).join('');
+  var b='<table class="mtable"><thead><tr><th>색</th><th>사이트명</th><th>지역</th><th>순서</th><th></th></tr></thead><tbody id="siteRows">'+rows+'</tbody></table>'
+   +'<div style="display:flex;gap:8px;margin-top:12px"><input class="inp" id="nsName" placeholder="새 사이트명 (예: ESHD)"><select class="sel" id="nsRegion" style="width:120px">'+Object.keys(REGIONS).map(function(k){return '<option value="'+k+'">'+REGIONS[k]+'</option>';}).join('')+'</select><button class="btn pri" data-act="sadd">추가</button></div>'
+   +'<p class="note">지역이 <b>미국</b>인 사이트의 출장만 LG 미국 기준 계산에 포함됩니다(사이트별 한도는 인원별 출장일 → ✎ 기준 설정). 캐나다·폴란드·중국 등은 국가별로 따로 집계됩니다. 일정·보고에 사용 중인 사이트는 삭제할 수 없습니다.</p>';
+  openModal('사이트 관리',b,'<button class="btn" data-act="mclose">닫기</button><button class="btn pri" data-act="ssave">변경 저장</button>',true);
+}
+function saveSites(){
+  var n=0;document.querySelectorAll('#siteRows tr').forEach(function(tr){
+    var s=siteById(tr.dataset.sid);if(!s)return;
+    var nv=Object.assign({},s,{name:tr.querySelector('.sn').value.trim()||s.name,region:tr.querySelector('.sr').value,color:tr.querySelector('.sc').value,order:+tr.querySelector('.so').value||0});
+    if(nv.name!==s.name||nv.region!==s.region||nv.color!==s.color||+nv.order!==+(s.order||0)){save('sites',nv);n++;}
+  });
+  toast(n?n+'개 사이트가 저장되었습니다':'변경 사항이 없습니다');openSites();
+}
+function addSite(){
+  var nm=$('nsName').value.trim();if(!nm)return toast('사이트명을 입력하세요',true);
+  if(DB.sites.some(function(s){return s.name===nm;}))return toast('같은 이름의 사이트가 있습니다',true);
+  var colors=['#1558a0','#72128c','#2e6e18','#7a4208','#0a5e40','#8a2a10','#1a6080','#3c3489'];
+  save('sites',{id:uid('site_'),name:nm,region:$('nsRegion').value,color:colors[DB.sites.length%colors.length],order:DB.sites.length});
+  toast('사이트가 추가되었습니다');openSites();
+}
+
+/* ══════════ 3. 인원별 출장일 ══════════ */
+var COUNTRY_COLS=['us','ca','pl','eu','cn','vn','etc','kr'];
+function personBase(){
+  var T=TD();
+  return allNames().map(function(n){
+    var p=personByName(n)||{name:n,org:orgOf(n),position:'',role:'',note:''};
+    var cur=DB.trips.find(function(t){return t.name===n&&dn(t.start)<=T&&dn(t.end)>=T;});
+    return {name:n,p:p,org:p.org||'hq',cur:cur};
+  });
+}
+function locHtml(cur){
+  if(!cur)return '<span style="color:var(--ok);font-weight:700">국내</span>';
+  var rg=siteRegion(cur.siteId);
+  return '<span class="badge '+(rg==='us'?'b-go':rg==='kr'?'b-gray':'b-plan')+'">'+(REGIONS[rg]||'기타')+'</span> '+siteChip(cur.siteId)+' <span class="muted" style="font-size:12px">~'+fmtMD(cur.end)+'</span>';
+}
+function posHtml(p){return [p.position,p.role].filter(Boolean).map(esc).join(' · ')||'<span class="faint">-</span>';}
+function stBadge(s){return '<span class="badge '+{ok:'b-ok',warn:'b-warn',bad:'b-bad'}[s]+'">'+{ok:'정상',warn:'주의',bad:'초과'}[s]+'</span>';}
+function dateCell(s){if(!s)return '<span class="faint">2년 내 없음</span>';var T=TD(),d=dn(s);
+  return d<=T?'<b style="color:var(--ok)">즉시</b>':'<b>'+fmtDot(s).slice(2)+'</b> <span class="faint" style="font-size:11px">D-'+(d-T)+'</span>';}
+
+function renderRulesBar(){
+  var R=getRules(),h='<span class="chip">1년 '+R.annual+'일</span><span class="chip">1회 '+R.single+'일</span><span class="chip pri">목표 연속 '+R.target+'일</span>';
+  DB.sites.filter(function(s){return s.region==='us'&&(+s.lgAnnual||+s.lgSingle);}).forEach(function(s){var r=siteRule(s.id);h+='<span class="chip">'+esc(s.name)+' 1년 '+r.annual+'·1회 '+r.single+'</span>';});
+  $('rulesBar').innerHTML=h+'<button class="btn sm" data-act="rules">✎ 기준 설정</button>';
+}
+function renderPersons(){
+  ['us','feas','country'].indexOf(UI.pmSub)<0&&(UI.pmSub='us');
+  document.querySelectorAll('#pmSub button').forEach(function(b){b.classList.toggle('on',b.dataset.v===UI.pmSub);});
+  renderRulesBar();
+  if(renderPersons._sub!==UI.pmSub||!$('pmQ')){renderPmTools();renderPersons._sub=UI.pmSub;}
+  renderPmBody();
+}
+function renderPmTools(){
+  var R=getRules(),h='<input class="inp" id="pmQ" placeholder="🔍 이름 검색" style="width:130px">'
+   +'<div class="seg" id="pmOrg">'+[['all','전체'],['hq','본사'],['able','ABLE']].map(function(o){return '<button data-v="'+o[0]+'"'+(UI.pmOrg===o[0]?' class="on"':'')+'>'+o[1]+'</button>';}).join('')+'</div>';
+  if(UI.pmSub==='us'){
+    h+='<div class="seg" id="pmState">'+[['all','전체'],['us','미국 체류중'],['risk','주의·초과']].map(function(o){return '<button data-v="'+o[0]+'"'+(UI.pmState===o[0]?' class="on"':'')+'>'+o[1]+'</button>';}).join('')+'</div>'
+      +'<label class="chk"><input type="checkbox" id="pmOnlyUS"'+(UI.pmOnlyUS!==false?' checked':'')+'>미국 출장 이력 있는 인원만</label>';
+  }else if(UI.pmSub==='feas'){
+    var siteOpts='<option value="">기본 (1년 '+R.annual+'·1회 '+R.single+'일)</option>'+DB.sites.filter(function(s){return s.region==='us';}).map(function(s){var r=siteRule(s.id);return '<option value="'+esc(s.id)+'"'+(UI.fSite===s.id?' selected':'')+'>'+esc(s.name)+' (1년 '+r.annual+'·1회 '+r.single+')</option>';}).join('');
+    h+='<label class="lbl2">출발 예정일<input type="date" class="inp" id="fStart" value="'+esc(UI.fStart||sdn(TD()+14))+'"></label>'
+      +'<label class="lbl2">사이트<select class="sel" id="fSite">'+siteOpts+'</select></label>'
+      +'<label class="lbl2">필요 일수<input type="number" class="inp" id="fDays" min="1" max="365" value="'+esc(UI.fDays||R.target)+'" style="width:80px"></label>'
+      +'<label class="lbl2">정렬<select class="sel" id="fSort"><option value="max">체류 가능일 많은 순</option><option value="name"'+(UI.fSort==='name'?' selected':'')+'>이름순</option></select></label>';
+  }
+  h+='<div class="spacer"></div><button class="btn" id="pmManage">👥 인원 관리</button>';
+  $('pmTools').innerHTML=h;
+  $('pmQ').oninput=renderPmBody;
+  $('pmOrg').onclick=function(e){var b=e.target.closest('button');if(!b)return;UI.pmOrg=b.dataset.v;this.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x===b);});renderPmBody();};
+  $('pmManage').onclick=openPersons;
+  if($('pmState'))$('pmState').onclick=function(e){var b=e.target.closest('button');if(!b)return;UI.pmState=b.dataset.v;this.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x===b);});renderPmBody();};
+  if($('pmOnlyUS'))$('pmOnlyUS').onchange=function(){UI.pmOnlyUS=this.checked;renderPmBody();};
+  ['fStart','fSite','fDays','fSort'].forEach(function(k){if($(k))$(k).onchange=function(){UI[k]=this.value;renderPmBody();};});
+}
+function baseFilter(rows){
+  var q=($('pmQ')?$('pmQ').value:'').trim().toLowerCase();
+  return rows.filter(function(r){if(UI.pmOrg!=='all'&&r.org!==UI.pmOrg)return false;if(q&&r.name.toLowerCase().indexOf(q)<0)return false;return true;});
+}
+function sortRows(rows,val){
+  var k=UI.pmSort,sg=UI.pmAsc?1:-1,f=val[k]||val.name;
+  return rows.sort(function(a,b){var x=f(a),y=f(b);return (typeof x==='string'?byKo(x,y):x-y)*sg||byKo(a.name,b.name);});
+}
+function th(k,l,cls){return '<th class="'+(cls||'')+'" data-act="psort" data-k="'+k+'">'+l+(UI.pmSort===k?' <span class="ar">'+(UI.pmAsc?'▲':'▼')+'</span>':'')+'</th>';}
+function renderPmBody(){
+  if(!allNames().length){$('pmStats').innerHTML='';$('pmBody').innerHTML='<div class="empty"><b>등록된 인원이 없습니다</b>출장일정 탭에서 출장을 등록하거나 👥 인원 관리에서 추가하세요.</div>';$('pmNote').innerHTML='';return;}
+  if(UI.pmSub==='feas')return renderFeas();
+  if(UI.pmSub==='country')return renderCountry();
+  renderUS();
+}
+
+/* ── 미국 체류 현황 ── */
+function renderUS(){
+  var R=getRules(),T=TD();
+  var all=personBase().map(function(r){r.u=usStatus(r.name);return r;});
+  var usP=all.filter(function(r){return r.u.hasUS;});
+  var c=function(f){return usP.filter(f).length;};
+  $('pmStats').innerHTML=
+    stat(usP.length,'미국 출장 인원','본사 '+c(function(r){return r.org!=='able';})+' · ABLE '+c(function(r){return r.org==='able';}))
+   +stat(c(function(r){return r.u.inUS;}),'현재 미국 체류','오늘 기준','var(--pri)')
+   +stat(c(function(r){return r.u.tgtInc&&dn(r.u.tgtInc)<=T;}),R.target+'일 즉시 출발 가능','예정 포함 기준','var(--ok)')
+   +stat(c(function(r){return r.u.status==='warn';}),'주의','최고 '+Math.round(R.annual*R.warn)+'일↑ 또는 연속 '+Math.round(R.single*R.warn)+'일↑','var(--warn)')
+   +stat(c(function(r){return r.u.status==='bad';}),'초과','1년 '+R.annual+'일 / 1회 한도 초과','var(--bad)');
+  var rows=baseFilter(UI.pmOnlyUS===false?all:usP).filter(function(r){
+    if(UI.pmState==='us'&&!r.u.inUS)return false;if(UI.pmState==='risk'&&r.u.status==='ok')return false;return true;});
+  rows=sortRows(rows,{name:function(r){return r.name;},cur:function(r){return r.u.cur;},peak:function(r){return r.u.peak;},remain:function(r){return r.u.remain;},
+    longest:function(r){return r.u.longest?r.u.longest.len:0;},st:function(r){return {ok:0,warn:1,bad:2}[r.u.status];},
+    exc:function(r){return r.u.tgtExc?dn(r.u.tgtExc):1e9;},inc:function(r){return r.u.tgtInc?dn(r.u.tgtInc):1e9;}});
+  if(!rows.length){$('pmBody').innerHTML='<div class="empty"><b>조건에 맞는 인원이 없습니다</b></div>';}
+  else{
+    var h='<table class="xt"><thead><tr>'+th('name','이름')+'<th>직급·담당</th><th>현재 위치</th>'+th('cur','1년 누적<br><small>오늘까지</small>','num')+th('peak','최고<br><small>예정 포함</small>','num')+th('remain','잔여','num')
+      +th('longest','최장 연속','num')+th('st','상태')+'<th>예정 미국 출장</th>'+th('exc',R.target+'일 가능<br><small>예정 제외</small>')+th('inc',R.target+'일 가능<br><small>예정 포함</small>')+'</tr></thead><tbody>';
+    rows.forEach(function(r){var u=r.u;
+      h+='<tr class="pr" data-act="pexp" data-name="'+esc(r.name)+'"><td class="stk"><span class="faint" style="font-size:10px">'+(pmExpanded[r.name]?'▼':'▶')+'</span> <span class="pname">'+esc(r.name)+'</span> '+orgBadge(r.org)+'</td>'
+        +'<td class="sm">'+posHtml(r.p)+'</td><td>'+locHtml(r.cur)+'</td>'
+        +'<td class="num">'+meter(u.cur,R.annual)+'</td>'
+        +'<td class="num">'+numCell(u.peak,R.annual)+(u.peak>u.cur?'<div class="faint" style="font-size:11px">'+fmtDot(u.peakAt).slice(2)+'</div>':'')+'</td>'
+        +'<td class="num"><b style="color:'+(u.remain<0?'var(--bad)':u.remain<R.annual*(1-R.warn)?'var(--warn)':'inherit')+'">'+u.remain+'</b></td>'
+        +'<td class="num">'+(u.longest?numCell(u.longest.len,u.longest.single)+'<span class="faint" style="font-size:11px">/'+u.longest.single+'</span>':'<span class="faint">-</span>')+'</td>'
+        +'<td title="'+esc(u.why.join(' / '))+'">'+stBadge(u.status)+(u.why.length?'<div class="why">'+esc(u.why[0])+'</div>':'')+'</td>'
+        +'<td>'+(u.nextUS?siteChip(u.nextUS.siteId)+' <span style="font-size:12px">'+fmtMD(u.nextUS.start)+'~'+fmtMD(u.nextUS.end)+' ('+days(u.nextUS.start,u.nextUS.end)+'일)</span>':'<span class="faint">-</span>')+'</td>'
+        +'<td>'+dateCell(u.tgtExc)+'</td><td class="hl">'+dateCell(u.tgtInc)+'</td></tr>';
+      if(pmExpanded[r.name])h+='<tr class="exp"><td colspan="11">'+histHtml(r.name,'us')+'</td></tr>';
+    });
+    $('pmBody').innerHTML=h+'</tbody></table>';
+  }
+  $('pmNote').innerHTML='· 기준: 어느 날이든 그날까지 365일 동안 <b>미국 체류 '+R.annual+'일 이하</b>, 한 번에 <b>'+R.single+'일 이하</b>(귀국 없이 이어진 출장은 합산). 출발일·귀국일 모두 체류일. 사이트별 한도가 있으면 그 기준을 씁니다(✎ 기준 설정).<br>'
+   +'· <b>미국 사이트 출장만</b> 계산합니다. 캐나다·폴란드·중국 등은 🌏 국가별 현황에서 따로 봅니다.<br>'
+   +'· <b>최고(예정 포함)</b>: 등록된 예정 출장까지 넣었을 때 오늘 이후 가장 높아지는 1년 누적, 잔여는 최고 기준. '
+   +'<b>'+R.target+'일 가능</b>: '+R.target+'일 연속 미국 출장을 갈 수 있는 가장 빠른 출발일 — 예정 제외는 아직 시작 안 한 출장을 빼고, 예정 포함은 모두 넣고(겹치는 기간 제외) 계산합니다.';
+}
+function stat(v,l,s,col){return '<div class="card stat"><div class="v"'+(col?' style="color:'+col+'"':'')+'>'+v+'</div><div class="l">'+l+'</div><div class="s">'+s+'</div></div>';}
+
+/* ── 출장 가능 조회 ── */
+function renderFeas(){
+  var R=getRules(),T=TD();
+  var s=dn(UI.fStart||sdn(T+14)),n=Math.max(1,Math.min(365,+(UI.fDays||R.target))),sid=UI.fSite||null,rule=siteRule(sid);
+  if(isNaN(s)){s=T+14;}
+  var rows=baseFilter(personBase()).map(function(r){
+    var ctx=buildCtx(r.name,'all'),ms=maxStay(ctx,sid,s),ok=ms.max>=n;
+    r.ms=ms;r.ok=ok;r.ea=ok?null:earliestStart(ctx,sid,n,Math.max(T,s));r.u=usStatus(r.name);return r;});
+  var okN=rows.filter(function(r){return r.ok;}).length;
+  $('pmStats').innerHTML=stat(okN+' <small style="font-size:14px;color:var(--muted)">/ '+rows.length+'명</small>',fmtDot(sdn(s))+' 출발 '+n+'일 가능','사이트 기준: 1년 '+rule.annual+'·1회 '+rule.single+'일','var(--ok)')
+    +stat(rows.filter(function(r){return !r.ok&&r.ms.max>0;}).length,'일부 기간만 가능',n+'일 미만','var(--warn)')
+    +stat(rows.filter(function(r){return r.ms.max===0;}).length,'출발 불가','해당 출발일 기준','var(--bad)');
+  rows.sort(UI.fSort==='name'?function(a,b){return byKo(a.name,b.name);}:function(a,b){return b.ms.max-a.ms.max||byKo(a.name,b.name);});
+  var h='<table class="xt"><thead><tr><th class="stk">이름</th><th>직급·담당</th><th>현재 위치</th><th style="min-width:200px">최대 체류 가능</th><th>복귀 가능일</th><th>더 못 머무는 이유</th><th>'+n+'일 가능?</th><th>'+n+'일 가능한 가장 빠른 날</th><th class="num">최고(예정 포함)</th></tr></thead><tbody>';
+  rows.forEach(function(r){var m=r.ms.max,pct=Math.min(100,m/rule.single*100);
+    h+='<tr><td class="stk"><span class="pname">'+esc(r.name)+'</span> '+orgBadge(r.org)+'</td><td class="sm">'+posHtml(r.p)+'</td><td>'+locHtml(r.cur)+'</td>'
+      +'<td><div class="meter"><div class="bar"><i class="'+(m>=n?'':m>0?'w':'b')+'" style="width:'+pct+'%"></i></div><span class="num">'+(m?m+'<small>일</small>':'<span style="color:var(--bad)">출발 불가</span>')+'</span></div></td>'
+      +'<td>'+(m?fmtDot(sdn(s+m-1)).slice(2):'-')+'</td>'
+      +'<td class="sm">'+(m>=rule.single?'1회 한도 '+rule.single+'일':esc(whyText(r.ms.why,sid)))+'</td>'
+      +'<td>'+(r.ok?'<b style="color:var(--ok)">가능</b>':'<b style="color:var(--bad)">불가</b>')+'</td>'
+      +'<td>'+(r.ok?'<span class="faint">-</span>':dateCell(r.ea==null?null:sdn(r.ea)))+'</td>'
+      +'<td class="num">'+numCell(r.u.peak,R.annual)+'</td></tr>';});
+  $('pmBody').innerHTML=h+'</tbody></table>';
+  $('pmNote').innerHTML='· 등록된 예정 출장까지 모두 넣고 계산합니다. 막는 이유: <b>기존 출장과 겹침</b> / <b>1회 한도</b>(귀국 없이 이어진 출장 포함) / <b>최근 1년 한도</b>(그 이후 1년 안의 예정 출장까지 확인).<br>· 미국 사이트 출장만 체류일로 셉니다. 다른 나라 출장은 날짜가 겹치는 경우에만 영향을 줍니다.';
+}
+
+/* ── 국가별 현황 ── */
+function renderCountry(){
+  var T=TD(),y0=dn(new Date().getFullYear()+'-01-01');
+  var rows=baseFilter(personBase()).map(function(r){
+    var c12={},cy={},n={};
+    DB.trips.forEach(function(t){if(t.name!==r.name)return;var rg=siteRegion(t.siteId);
+      n[rg]=(n[rg]||0)+1;c12[rg]=c12[rg]||new Set();cy[rg]=cy[rg]||new Set();
+      for(var d=dn(t.start),e=dn(t.end);d<=e;d++){if(d>=T-364&&d<=T)c12[rg].add(d);if(d>=y0&&d<=T)cy[rg].add(d);}});
+    r.c12={};r.cy={};Object.keys(c12).forEach(function(k){r.c12[k]=c12[k].size;r.cy[k]=cy[k].size;});
+    var ab=new Set();Object.keys(c12).forEach(function(k){if(k!=='kr')c12[k].forEach(function(d){ab.add(d);});});r.abroad=ab.size;
+    r.nextT=DB.trips.filter(function(t){return t.name===r.name&&dn(t.start)>T;}).sort(function(a,b){return dn(a.start)-dn(b.start);})[0];
+    return r;});
+  var used=COUNTRY_COLS.filter(function(k){return DB.trips.some(function(t){return siteRegion(t.siteId)===k;});});
+  if(used.indexOf('us')<0)used.unshift('us');
+  var cnt=function(k){return personBase().filter(function(r){return r.cur&&siteRegion(r.cur.siteId)===k;}).length;};
+  $('pmStats').innerHTML=used.filter(function(k){return k!=='kr';}).slice(0,5).map(function(k){return stat(cnt(k),REGIONS[k]+' 체류중','오늘 기준');}).join('');
+  var val={name:function(r){return r.name;},abroad:function(r){return r.abroad;}};
+  used.forEach(function(k){val['c_'+k]=function(r){return r.c12[k]||0;};});
+  rows=sortRows(rows,val);
+  var h='<table class="xt"><thead><tr>'+th('name','이름','stk')+'<th>현재 위치</th>';
+  used.forEach(function(k){h+=th('c_'+k,(k==='kr'?'국내 출장':REGIONS[k])+'<br><small>12M · '+new Date().getFullYear()+'년</small>','num'+(k==='us'?' usc':''));});
+  h+=th('abroad','해외 합계<br><small>12M</small>','num')+'<th>다음 출장</th></tr></thead><tbody>';
+  rows.forEach(function(r){
+    h+='<tr class="pr" data-act="pexp" data-name="'+esc(r.name)+'"><td class="stk"><span class="faint" style="font-size:10px">'+(pmExpanded[r.name]?'▼':'▶')+'</span> <span class="pname">'+esc(r.name)+'</span> '+orgBadge(r.org)+'</td><td>'+locHtml(r.cur)+'</td>';
+    used.forEach(function(k){var a=r.c12[k]||0,b=r.cy[k]||0;h+='<td class="num'+(k==='us'?' usc':'')+'">'+(a||b?'<b>'+a+'</b> <span class="faint">· '+b+'</span>':'<span class="faint">-</span>')+'</td>';});
+    h+='<td class="num"><b>'+r.abroad+'</b></td><td>'+(r.nextT?'<span class="badge b-gray">'+(REGIONS[siteRegion(r.nextT.siteId)]||'')+'</span> '+siteChip(r.nextT.siteId)+' <span style="font-size:12px">'+fmtMD(r.nextT.start)+'~'+fmtMD(r.nextT.end)+'</span>':'<span class="faint">-</span>')+'</td></tr>';
+    if(pmExpanded[r.name])h+='<tr class="exp"><td colspan="'+(used.length+4)+'">'+histHtml(r.name,'all')+'</td></tr>';
+  });
+  $('pmBody').innerHTML=h+'</tbody></table>';
+  $('pmNote').innerHTML='· 국가별 체류일: <b>최근 12개월</b> · <b>올해</b>(1/1~오늘) 실제 체류일(출발·귀국일 포함, 같은 날 중복은 1일). 국가는 사이트 관리의 지역으로 정해집니다.<br>· LG 기준 비교는 <b>미국만</b> 합니다(🇺🇸 미국 체류 현황). 캐나다는 별도 집계입니다.';
+}
+function meter(v,max){var pct=Math.min(100,v/max*100),cls=v>max?'b':v>=max*getRules().warn?'w':'';
+  return '<div class="meter"><div class="bar"><i class="'+cls+'" style="width:'+pct+'%"></i></div><span class="num">'+v+'<small> / '+max+'</small></span></div>';}
+function numCell(v,max){var c=v>max?'var(--bad)':v>=max*getRules().warn?'var(--warn)':'inherit';return '<b style="color:'+c+'">'+v+'</b>';}
+function histHtml(name,mode){
+  var T=TD(),p=personByName(name);
+  var trips=DB.trips.filter(function(t){return t.name===name&&(mode!=='us'||isUS(t));}).sort(function(a,b){return dn(b.start)-dn(a.start);});
+  if(!trips.length)return '<div class="hist faint">출장 이력이 없습니다.</div>';
+  var stays=mode==='us'?mergeStays(buildCtx(name,'all').usIv):[];
+  var h='<div class="hist">'+(p&&p.note?'<div style="margin-bottom:6px;font-size:12.5px">📌 '+esc(p.note)+'</div>':'')+'<table><thead><tr><th>상태</th><th>국가</th><th>사이트</th><th>업무</th><th>기간</th><th style="text-align:right">일수</th>'+(mode==='us'?'<th>연속 체류</th>':'')+'<th></th></tr></thead><tbody>';
+  trips.forEach(function(t){var st=tripStatus(t),rg=siteRegion(t.siteId);
+    var sty=stays.find(function(o){return o.s<=dn(t.start)&&o.e>=dn(t.start);});
+    h+='<tr><td><span class="badge '+{go:'b-go',plan:'b-plan',done:'b-done'}[st]+'">'+{go:'출장중',plan:'예정',done:'완료'}[st]+'</span></td><td>'+(REGIONS[rg]||'기타')+'</td><td>'+siteChip(t.siteId)+'</td><td>'+esc(t.task||'-')+'</td><td>'+fmtDot(t.start)+' ~ '+fmtDot(t.end)+'</td><td style="text-align:right"><b>'+days(t.start,t.end)+'</b></td>'
+      +(mode==='us'?'<td>'+(sty&&sty.n>1?'<span style="color:'+(sty.len>sty.single?'var(--bad)':'var(--warn)')+'">이어진 출장 합산 '+sty.len+'/'+sty.single+'일</span>':'<span class="faint">'+(sty?sty.len+'/'+sty.single+'일':'')+'</span>')+'</td>':'')
+      +'<td><button class="btn sm ghost" data-act="tedit" data-id="'+esc(t.id)+'">수정</button></td></tr>';});
+  return h+'</tbody></table></div>';
+}
+
+/* ── 기준 설정 ── */
+function openRules(){
+  var R=getRules();
+  var us=DB.sites.filter(function(s){return s.region==='us';});
+  var b='<div class="row3"><div class="fg"><label class="lbl">1년 한도 (일)</label><input class="inp" type="number" id="rAnnual" value="'+R.annual+'"></div>'
+   +'<div class="fg"><label class="lbl">1회 한도 (일)</label><input class="inp" type="number" id="rSingle" value="'+R.single+'"></div>'
+   +'<div class="fg"><label class="lbl">목표 연속 출장 (일)</label><input class="inp" type="number" id="rTarget" value="'+R.target+'"></div></div>'
+   +'<div class="lbl" style="margin-top:6px">미국 사이트별 한도 <span class="hint">비워두면 기본값 사용</span></div>'
+   +'<table class="mtable"><thead><tr><th>사이트</th><th>1년 한도</th><th>1회 한도</th></tr></thead><tbody id="rSites">'
+   +us.map(function(s){return '<tr data-sid="'+esc(s.id)+'"><td><b>'+esc(s.name)+'</b></td><td><input class="inp ra" type="number" value="'+esc(s.lgAnnual||'')+'" placeholder="'+R.annual+'"></td><td><input class="inp rs" type="number" value="'+esc(s.lgSingle||'')+'" placeholder="'+R.single+'"></td></tr>';}).join('')
+   +'</tbody></table><p class="note">미국 사이트가 없으면 출장일정 → 사이트 관리에서 지역을 <b>미국</b>으로 지정하세요. 이 기준은 모든 사용자에게 공통 적용됩니다.</p>';
+  openModal('✎ 미국 출장 기준 설정',b,'<button class="btn" data-act="mclose">취소</button><button class="btn pri" data-act="rsave">저장</button>');
+}
+function saveRules(){
+  var a=+$('rAnnual').value,s=+$('rSingle').value,t=+$('rTarget').value;
+  if(!(a>0&&s>0&&t>0))return toast('1 이상의 숫자를 입력하세요',true);
+  save('config',{id:'rules',json:JSON.stringify({annual:a,single:s,target:t})});
+  document.querySelectorAll('#rSites tr').forEach(function(tr){var st=siteById(tr.dataset.sid);if(!st)return;
+    var la=tr.querySelector('.ra').value.trim(),ls=tr.querySelector('.rs').value.trim();
+    if(String(st.lgAnnual||'')!==la||String(st.lgSingle||'')!==ls){var nv=Object.assign({},st,{lgAnnual:la,lgSingle:ls});save('sites',nv);}});
+  closeModal();toast('기준이 저장되었습니다');
+}
+function openPersons(){
+  var names=allNames();
+  var rows=names.map(function(n){var p=personByName(n)||{id:'',name:n,org:orgOf(n),position:'',role:'',note:''};
+    var used=DB.trips.some(function(t){return t.name===n;})||DB.reports.some(function(r){return r.author===n;});
+    return '<tr data-pid="'+esc(p.id)+'" data-name="'+esc(n)+'"><td><b>'+esc(n)+'</b></td><td><select class="sel po" style="width:90px"><option value="hq"'+(p.org!=='able'?' selected':'')+'>본사</option><option value="able"'+(p.org==='able'?' selected':'')+'>ABLE</option></select></td><td><input class="inp pp" value="'+esc(p.position)+'" placeholder="직급"></td><td><input class="inp pr2" value="'+esc(p.role)+'" placeholder="담당업무"></td><td><input class="inp pn" value="'+esc(p.note)+'" placeholder="비고"></td><td>'+(used?'':'<button class="btn sm danger" data-act="pdel" data-id="'+esc(p.id)+'">삭제</button>')+'</td></tr>';}).join('');
+  var b='<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap"><input class="inp" id="npName" placeholder="이름" style="flex:1;min-width:100px"><select class="sel" id="npOrg" style="width:100px"><option value="hq">본사</option><option value="able">ABLE</option></select><input class="inp" id="npPos" placeholder="직급" style="width:90px"><input class="inp" id="npRole" placeholder="담당업무" style="flex:1;min-width:100px"><button class="btn pri" data-act="padd">추가</button></div>'
+   +'<div style="overflow:auto"><table class="mtable" style="min-width:620px"><thead><tr><th>이름</th><th>소속</th><th>직급</th><th>담당업무</th><th>비고</th><th></th></tr></thead><tbody id="pRows">'+rows+'</tbody></table></div>'
+   +'<p class="note">출장 등록·일일보고 작성 시 처음 입력한 이름은 자동으로 추가됩니다. 이력이 있는 인원은 삭제할 수 없습니다.<br>※ 개인정보 보호를 위해 연락처·여권번호 등은 기록하지 마세요 (링크를 아는 누구나 볼 수 있습니다).</p>';
+  openModal('👥 인원 관리 ('+names.length+'명)',b,'<button class="btn" data-act="mclose">닫기</button><button class="btn pri" data-act="psave">변경 저장</button>',true);
+}
+function savePersons(){
+  var n=0;document.querySelectorAll('#pRows tr').forEach(function(tr){
+    var p=personByName(tr.dataset.name)||{id:uid('p_'),name:tr.dataset.name,org:'hq',position:'',role:'',note:''};
+    var nv={id:p.id,name:p.name,org:tr.querySelector('.po').value,position:tr.querySelector('.pp').value.trim(),role:tr.querySelector('.pr2').value.trim(),note:tr.querySelector('.pn').value.trim()};
+    if(!tr.dataset.pid||nv.org!==p.org||nv.position!==(p.position||'')||nv.role!==(p.role||'')||nv.note!==(p.note||'')){save('persons',nv);n++;}
+  });
+  toast(n?n+'명 저장되었습니다':'변경 사항이 없습니다');openPersons();
+}
+function addPerson(){
+  var nm=$('npName').value.trim();if(!nm)return toast('이름을 입력하세요',true);
+  if(personByName(nm))return toast('이미 등록된 이름입니다',true);
+  save('persons',{id:uid('p_'),name:nm,org:$('npOrg').value,position:$('npPos').value.trim(),role:$('npRole').value.trim(),note:''});
+  toast(nm+' 추가됨');openPersons();
+}
+
+
+/* ══════════ 설정 ══════════ */
+function openSettings(){
+  var b='<div class="fg"><label class="lbl">Apps Script 웹앱 URL<span class="hint">배포 → 웹 앱 URL (…/exec)</span></label><input class="inp" id="setUrl" value="'+esc(lsGet(LSK.api,'')||'')+'" placeholder="'+(CONFIG.API_URL?'(코드에 기본 URL 설정됨 — 비워두면 기본값 사용)':'https://script.google.com/macros/s/…/exec')+'"></div>'
+   +'<div style="display:flex;gap:8px;margin-bottom:16px"><button class="btn" data-act="settest">연결 테스트</button><span id="setRes" style="align-self:center;font-size:13px"></span></div>'
+   +'<div class="fg"><label class="lbl">내 이름<span class="hint">일일보고 작성 시 자동 입력</span></label><input class="inp" id="setMe" list="dlPersons" value="'+esc(lsGet(LSK.me,''))+'"></div>'
+   +'<hr style="border:0;border-top:1px solid var(--line);margin:16px 0">'
+   +'<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-act="backup">💾 JSON 백업 다운로드</button>'+(isRemote()?'':'<button class="btn" data-act="sample">샘플 데이터 넣기 (미리보기용)</button><button class="btn danger" data-act="resetlocal">로컬 데이터 초기화</button>')+'</div>'
+   +'<p class="note">현재 모드: <b>'+(isRemote()?'서버 공유 모드':'로컬 미리보기 모드')+'</b> · 미전송 '+pending.length+'건 · 버전 '+APP_VERSION+'</p>';
+  openModal('⚙ 설정',b,'<button class="btn" data-act="mclose">닫기</button><button class="btn pri" data-act="setsave">저장</button>');
+}
+function testUrl(){
+  var u=$('setUrl').value.trim()||CONFIG.API_URL;if(!u){$('setRes').innerHTML='<span style="color:var(--warn)">URL을 입력하세요</span>';return;}
+  $('setRes').textContent='확인 중…';
+  fetch(u+'?action=ping&_='+Date.now()).then(function(r){return r.json();}).then(function(j){$('setRes').innerHTML=j&&j.ok?'<span style="color:var(--ok);font-weight:700">✓ 연결 성공'+(j.sheet?' ('+esc(j.sheet)+')':'')+'</span>':'<span style="color:var(--bad)">응답 이상</span>';})
+  .catch(function(e){$('setRes').innerHTML='<span style="color:var(--bad)">실패: '+esc(e.message)+'</span>';});
+}
+function saveSettings(){
+  var u=$('setUrl').value.trim();
+  if(u&&!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u))return toast('URL 형식이 올바르지 않습니다 (…/exec 로 끝나야 함)',true);
+  var was=apiUrl();lsSet(LSK.api,u);lsSet(LSK.me,$('setMe').value.trim());
+  closeModal();toast('저장되었습니다');
+  if(was!==apiUrl()){if(isRemote()){var c=lsGet(LSK.cache,null);if(c)DB=normalize(c);}sync();}
+  else resetReportForm();
+}
+function backup(){
+  var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(DB,null,1)],{type:'application/json'}));
+  var d=new Date();a.download='ABLE_backup_'+todayStr().replace(/-/g,'')+'_'+pad(d.getHours())+pad(d.getMinutes())+'.json';a.click();
+}
+function loadSample(){
+  if(!confirm('미리보기용 샘플 데이터를 추가할까요? (로컬 모드에서만 사용)'))return;
+  var T=TD(),S=DB.sites;function sid(n){var s=S.find(function(x){return x.name===n;});return s?s.id:S[0].id;}
+  var P=[['박우철','hq','책임','PM'],['김성민','hq','선임','Vision SW'],['강민호','hq','선임','HW'],['이준호','able','과장','셋업'],['정다은','able','대리','셋업'],['최현수','able','사원','양산대응'],['한지훈','able','과장','셋업']];
+  P.forEach(function(p){if(!personByName(p[0]))DB.persons.push({id:uid('p_'),name:p[0],org:p[1],position:p[2],role:p[3],note:''});});
+  var tr=[['김성민','hq','ESHD','셋업',-200,-120],['김성민','hq','ESHD','셋업',-40,25],['강민호','hq','ESMI','양산대응',-10,40],['이준호','able','ESHD','셋업',-150,-70],['이준호','able','ESHD','셋업',-30,45],['정다은','able','ESHG','셋업',-20,50],['최현수','able','ESOT','양산대응',-5,60],['한지훈','able','ESHD','셋업',20,100],['박우철','hq','ESHD','PM',14,24],['강민호','hq','ESHD','셋업',-300,-215],['강민호','hq','WA','안정화',-120,-40],['한지훈','able','ESNA','개조',-90,-60],['정다은','able','ESOT','셋업',-200,-120],['최현수','able','ESHD','셋업',70,140],['김성민','hq','ESHD','셋업',26,60]];
+  tr.forEach(function(t){DB.trips.push({id:uid('t_'),name:t[0],org:t[1],siteId:sid(t[2]),task:t[3],start:sdn(T+t[4]),end:sdn(T+t[5]),note:'',updatedAt:new Date().toISOString()});});
+  var rp=[['김성민','hq','ESHD',0,'3호기 Calibration 완료\n4호기 I/O Check (Vision) 진행 70%','4호기 I/O Check 마무리\nGRR 샘플 준비','고객 요청: 검사 이미지 저장 경로 변경 검토'],['이준호','able','ESHD',0,'2호기 케이블 포설 및 Turn On (Ele.) 완료','2호기 CDA Turn On',''],['강민호','hq','ESMI',-1,'양산 모니터링, 과검 2건 분석','Recipe 파라미터 조정 적용','Light 컨트롤러 1EA 교체 필요 — 본사 발송 요청'],['정다은','able','ESHG',-1,'DNC 라인 설비 Installation 지원','Turn On 준비',''],['김성민','hq','ESHD',-1,'3호기 Calibration 진행','Calibration 완료','']];
+  rp.forEach(function(r){DB.reports.push({id:uid('r_'),date:sdn(T+r[3]),siteId:sid(r[2]),author:r[0],org:r[1],progress:r[4],plan:r[5],issue:r[6],createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});});
+  persistLocal();closeModal();renderAll();toast('샘플 데이터가 추가되었습니다');
+}
+
+/* ══════════ 이벤트 ══════════ */
+document.addEventListener('click',function(e){
+  var el=e.target.closest('[data-act]');if(!el)return;
+  var a=el.dataset.act,id=el.dataset.id;
+  switch(a){
+    case 'mclose':closeModal();break;
+    case 'redit':editReport(id);break;
+    case 'rdel':var r=DB.reports.find(function(x){return x.id===id;});if(r&&confirm(r.author+'님의 '+fmtFull(r.date)+' 보고를 삭제할까요?')){remove('reports',id);toast('삭제되었습니다');if(editingReport&&editingReport.id===id)resetReportForm(true);}break;
+    case 'rcopy':var r2=DB.reports.find(function(x){return x.id===id;});if(r2)copyText(reportText(r2));break;
+    case 'gcopy':groupCopy(el.dataset.key);break;
+    case 'pick':$('drAuthor').value=el.dataset.name;resetReportForm(true);$('drAuthor').value=el.dataset.name;onAuthorChange();$('drProgress').focus();if(window.innerWidth<860)$('drForm').scrollIntoView({behavior:'smooth'});break;
+    case 'tedit':e.stopPropagation();openTrip(id);break;
+    case 'tsave':saveTrip(id);break;
+    case 'tdel':var t=DB.trips.find(function(x){return x.id===id;});if(t&&confirm(t.name+' / '+siteName(t.siteId)+' '+fmtDot(t.start)+'~'+fmtDot(t.end)+' 일정을 삭제할까요?')){remove('trips',id);closeModal();toast('삭제되었습니다');}break;
+    case 'sadd':addSite();break;
+    case 'ssave':saveSites();break;
+    case 'sdel':if(confirm('이 사이트를 삭제할까요?')){remove('sites',id);openSites();}break;
+    case 'psort':var k=el.dataset.k;if(UI.pmSort===k)UI.pmAsc=!UI.pmAsc;else{UI.pmSort=k;UI.pmAsc=(k==='name'||k==='exc'||k==='inc');}saveUI();renderPmBody();break;
+    case 'pexp':pmExpanded[el.dataset.name]=!pmExpanded[el.dataset.name];renderPmBody();break;
+    case 'rules':openRules();break;
+    case 'rsave':saveRules();break;
+    case 'padd':addPerson();break;
+    case 'psave':savePersons();break;
+    case 'pdel':if(id&&confirm('삭제할까요?')){remove('persons',id);openPersons();}break;
+    case 'settest':testUrl();break;
+    case 'setsave':saveSettings();break;
+    case 'backup':backup();break;
+    case 'sample':loadSample();break;
+    case 'resetlocal':if(confirm('이 기기의 로컬 데이터를 모두 지울까요?')){localStorage.removeItem(LSK.local);closeModal();sync();}break;
+  }
+});
+document.querySelectorAll('.tab').forEach(function(b){b.onclick=function(){switchTab(b.dataset.tab);};});
+$('sync').onclick=function(){sync();};
+$('btnSettings').onclick=openSettings;$('bannerSet').onclick=openSettings;
+$('drSubmit').onclick=submitReport;
+$('drCancelEdit').onclick=function(){resetReportForm(true);};
+$('drAuthor').addEventListener('change',onAuthorChange);
+$('drMode').onclick=function(e){var b=e.target.closest('button');if(!b)return;UI.drMode=b.dataset.v;saveUI();renderReports();};
+['drfSite','drfPerson','drfPeriod'].forEach(function(k){$(k).onchange=renderReports;});
+$('drfQ').oninput=renderReports;
+$('drCsv').onclick=exportCsv;
+$('tpAdd').onclick=function(){openTrip(null);};
+$('tpSites').onclick=openSites;
+$('tpView').onclick=function(e){var b=e.target.closest('button');if(!b)return;UI.tpView=b.dataset.v;saveUI();renderTrips();};
+$('tpZoom').onclick=function(e){var b=e.target.closest('button');if(!b)return;UI.tpZoom=b.dataset.v;ganttScrolled=false;saveUI();renderTrips();};
+['tpfOrg','tpfCountry','tpfSite','tpfPast'].forEach(function(k){$(k).onchange=renderTrips;});
+$('tpfQ').oninput=renderTrips;
+$('pmSub').onclick=function(e){var b=e.target.closest('button');if(!b)return;UI.pmSub=b.dataset.v;UI.pmSort=b.dataset.v==='country'?'abroad':'name';UI.pmAsc=b.dataset.v!=='country';saveUI();renderPersons();};
+$('fab').onclick=function(){
+  if(UI.tab==='trip')openTrip(null);
+  else if(UI.tab==='person')openPersons();
+  else{resetReportForm(true);$('drForm').scrollIntoView({behavior:'smooth'});$('drProgress').focus();}
+};
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&$('modalRoot').innerHTML)closeModal();});
+var rsT;window.addEventListener('resize',function(){clearTimeout(rsT);rsT=setTimeout(function(){if(UI.tab==='trip'&&UI.tpView==='gantt')renderTrips();},200);});
+document.addEventListener('visibilitychange',function(){if(!document.hidden&&isRemote())sync(true);});
+setInterval(function(){if(!document.hidden&&isRemote()&&!$('modalRoot').innerHTML)sync(true);},60000);
+
+function setHH(){document.documentElement.style.setProperty('--hh',document.querySelector('.top').offsetHeight+'px');}
+window.addEventListener('resize',setHH);
+/* ── 시작 ── */
+(function init(){
+  if(isRemote()){var c=lsGet(LSK.cache,null);if(c){DB=normalize(c);applyPending();}}
+  setHH();
+  switchTab(UI.tab||'report');
+  resetReportForm();
+  sync();
+})();
+</script>
+</body>
+</html>
