@@ -220,6 +220,36 @@ main{max-width:1600px;margin:0 auto;padding:16px}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.err{background:#b91c1c}
 .fab{display:none}
+.mem-box{display:flex;flex-wrap:wrap;gap:6px;min-height:34px;padding:6px;border:1px dashed var(--line2);border-radius:8px;background:var(--surface2)}
+.mem-box .none{font-size:12px;color:var(--faint);align-self:center;padding:0 4px}
+.mchip{display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 10px;border-radius:999px;border:1px solid var(--line2);background:#fff;font-size:13px;font-weight:700;cursor:pointer;user-select:none}
+.mchip input{width:15px;height:15px;accent-color:var(--pri);margin:0}
+.mchip.on{background:var(--pri-bg);border-color:#93c5fd;color:#1d4ed8}
+.mchip .sub{font-weight:500;font-size:11px;color:var(--muted)}
+.mchip.dis{opacity:.55;cursor:default}
+.mem-line{font-size:12.5px;color:var(--text2);margin:-4px 0 8px;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.mem-line .badge{height:20px}
+.bell,.adm-badge{display:none!important}
+body.admin .bell{display:inline-block!important}
+body.admin .adm-badge{display:inline-flex!important;background:#0f172a;color:#fff;margin-left:4px;cursor:pointer}
+.logo{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.al-row .btns{margin-left:auto;display:flex;gap:4px}
+.al-row .btns .btn{margin-left:0}
+.alert-box.done{border-color:var(--line);background:var(--surface2)}
+.bell{position:relative;border:1px solid var(--line);background:var(--surface2);height:30px;min-width:36px;border-radius:999px;font-size:15px;padding:0 8px}
+.bell .bdg{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;border-radius:9px;background:var(--bad);color:#fff;font-size:11px;font-weight:800;line-height:18px;padding:0 5px;display:none}
+.bell .bdg.or{background:#ea580c}
+.tab .cnt.red{background:var(--bad);color:#fff}
+.alert-box:empty{display:none}
+.alert-box{margin-bottom:12px;border-radius:var(--radius);border:1px solid #fecaca;background:#fff5f5;padding:12px 14px}
+.alert-box.today{border-color:#fed7aa;background:#fffaf5}
+.al-h{display:flex;align-items:center;gap:8px;font-weight:800;color:var(--bad);margin-bottom:6px;flex-wrap:wrap}
+.alert-box.today .al-h{color:#c2410c}
+.al-h .act{margin-left:auto}
+.al-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:6px 0;border-top:1px dashed #fecaca;font-size:13px}
+.al-row:first-of-type{border-top:0}
+.al-row .d{font-weight:800;min-width:92px}
+.al-row .btn{margin-left:auto}
 .pm-top{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:12px}
 .rules{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
 .chip{display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:999px;background:#fff;border:1px solid var(--line2);font-size:12px;font-weight:700;color:var(--text2)}
@@ -287,13 +317,14 @@ main{max-width:1600px;margin:0 auto;padding:16px}
 
 <header class="top">
   <div class="top-in">
-    <div class="brand"><div class="logo">B3</div>BU3 · ABLE <small>현장 업무 공유</small></div>
+    <div class="brand"><div class="logo" id="logo">B3</div>BU3 · ABLE <small>현장 업무 공유</small><span class="badge adm-badge" data-act="admoff" title="누르면 관리자 모드 종료">관리자</span></div>
     <div class="spacer"></div>
+    <button class="bell" id="bell" title="일일보고 미작성 알림">🔔<span class="bdg" id="bellCnt"></span></button>
     <div class="sync" id="sync" title="클릭하면 지금 동기화"><span class="dot"></span><span id="syncTxt">연결 확인</span></div>
     <button class="btn sm" id="btnSettings" title="설정">⚙<span class="hide-m">&nbsp;설정</span></button>
   </div>
   <nav class="tabs">
-    <button class="tab on" data-tab="report"><span class="ic">📝 </span>일일보고 작성</button>
+    <button class="tab on" data-tab="report"><span class="ic">📝 </span>일일보고 작성<span class="cnt red" id="cntRpt" style="display:none"></span></button>
     <button class="tab" data-tab="trip"><span class="ic">📅 </span>출장일정 <span class="cnt" id="cntTrip">0</span></button>
     <button class="tab" data-tab="person"><span class="ic">👤 </span>인원별 출장일</button>
   </nav>
@@ -303,6 +334,7 @@ main{max-width:1600px;margin:0 auto;padding:16px}
 <main>
 <!-- ═════════ 1. 일일보고 ═════════ -->
 <section class="view on" id="view-report">
+  <div class="alert-box" id="alertBox"></div>
   <div class="card today-strip" id="todayStrip"></div>
   <div class="dr-grid">
     <div class="card dr-form" id="drForm">
@@ -316,6 +348,10 @@ main{max-width:1600px;margin:0 auto;padding:16px}
         <div class="row2">
           <div class="fg"><label class="lbl">출장자(담당자) <span class="req">*</span></label><input class="inp" id="drAuthor" list="dlPersons" placeholder="이름" autocomplete="off"></div>
           <div class="fg"><label class="lbl">소속</label><select class="sel" id="drOrg"><option value="hq">본사</option><option value="able">ABLE</option></select></div>
+        </div>
+        <div class="fg"><label class="lbl">함께 출장 인원<span class="hint">대표 1인이 작성 시 같이 간 인원 체크</span></label>
+          <div class="mem-box" id="drMembers"></div>
+          <div style="display:flex;gap:6px;margin-top:6px"><input class="inp" id="drMemAdd" list="dlPersons" placeholder="다른 인원 추가 (이름 입력 후 Enter)" autocomplete="off" style="height:34px;font-size:13px"><button class="btn sm" id="drMemAddBtn" type="button">추가</button></div>
         </div>
         <div class="fg"><label class="lbl">진행상황 <span class="req">*</span><span class="hint">오늘 한 일</span></label><textarea class="ta" id="drProgress" rows="5" placeholder="예) 3호기 Calibration 완료&#10;4호기 I/O Check 진행 (70%)"></textarea></div>
         <div class="fg"><label class="lbl">예정사항<span class="hint">내일/다음 계획</span></label><textarea class="ta" id="drPlan" rows="3" placeholder="예) 4호기 I/O Check 마무리, GRR 착수"></textarea></div>
@@ -398,7 +434,7 @@ var APP_VERSION = '20261111a';
 var LG = {SINGLE:90, ANNUAL:150, WARN:0.8};
 var REGIONS = {us:'미국', ca:'캐나다', pl:'폴란드', eu:'유럽(기타)', cn:'중국', vn:'베트남', etc:'기타 해외', kr:'국내'};
 var ORG = {hq:'본사', able:'ABLE'};
-var LSK = {api:'able_api_url', me:'able_me', cache:'able_cache_v1', local:'able_local_v1', pend:'able_pending_v1', ui:'able_ui_v1'};
+var LSK = {api:'able_api_url', me:'able_me', cache:'able_cache_v1', local:'able_local_v1', pend:'able_pending_v1', admin:'able_admin', ui:'able_ui_v1'};
 var DEFAULT_SITES = [
   ['ESHD','us','#1558a0',150,150],['ESMI','us','#72128c'],['ESHG','us','#3c3489'],['MILS','us','#2e6e18'],
   ['UC2','us','#4a7a10'],['현대JV','us','#1a6080'],['ESOT','ca','#7a4208'],['WA','pl','#8a2a10'],
@@ -427,8 +463,8 @@ function toast(msg,err){var t=$('toast');t.textContent=msg;t.className='toast sh
 function byKo(a,b){return String(a).localeCompare(String(b),'ko');}
 
 /* ══════════ 데이터 / 동기화 ══════════ */
-var DB = {sites:[],persons:[],trips:[],reports:[],config:[]};
-var TYPES = ['sites','persons','trips','reports','config'];
+var DB = {sites:[],persons:[],trips:[],reports:[],config:[],acks:[]};
+var TYPES = ['sites','persons','trips','reports','config','acks'];
 var pending = lsGet(LSK.pend,[]);
 var syncing=false, lastSync=null, syncErr=false;
 
@@ -436,7 +472,7 @@ function apiUrl(){return (lsGet(LSK.api,'')||CONFIG.API_URL||'').trim();}
 function isRemote(){return !!apiUrl();}
 
 function seedLocal(){
-  return {sites:DEFAULT_SITES.map(function(s,i){return {id:'site_'+i,name:s[0],region:s[1],color:s[2],order:i,lgAnnual:s[3]||'',lgSingle:s[4]||''};}),persons:[],trips:[],reports:[],config:[]};
+  return {sites:DEFAULT_SITES.map(function(s,i){return {id:'site_'+i,name:s[0],region:s[1],color:s[2],order:i,lgAnnual:s[3]||'',lgSingle:s[4]||''};}),persons:[],trips:[],reports:[],config:[],acks:[]};
 }
 function normalize(d){
   var o={};TYPES.forEach(function(t){o[t]=Array.isArray(d&&d[t])?d[t].filter(function(r){return r&&r.id;}):[];});
@@ -663,14 +699,14 @@ function renderCommon(){
   var usedRg=Object.keys(REGIONS).filter(function(k){return DB.sites.some(function(s){return s.region===k;});});
   fillSelect($('tpfCountry'),[['all','전체 국가']].concat(usedRg.map(function(k){return [k,REGIONS[k]];})),true);
   fillSelect($('tpfSite'),[['all','전체 사이트']].concat(DB.sites.map(function(s){return [s.id,s.name];})),true);
-  var authors={};DB.reports.forEach(function(r){authors[r.author]=1;});
+  var authors={};DB.reports.forEach(function(r){reportCovers(r).forEach(function(n){authors[n]=1;});});
   fillSelect($('drfPerson'),[['all','전체 출장자']].concat(Object.keys(authors).sort(byKo).map(function(n){return [n,n];})),true);
   var T=TD();$('cntTrip').textContent=DB.trips.filter(function(t){return dn(t.start)<=T&&dn(t.end)>=T;}).length+'명 출장중';
 }
 function renderAll(){
   clearMemo();
   renderCommon();
-  if(UI.tab==='report')renderReports();
+  if(UI.tab==='report')renderReports();else renderAlerts();
   if(UI.tab==='trip')renderTrips();
   if(UI.tab==='person')renderPersons();
 }
@@ -688,8 +724,41 @@ function resetReportForm(keepWho){
   editingReport=null;$('drForm').classList.remove('editing');$('drSubmit').textContent='저장';
   $('drDate').value=todayStr();
   ['drProgress','drPlan','drIssue'].forEach(function(id){$(id).value='';});
+  memSel={};memManual=[];
   if(!keepWho){var me=lsGet(LSK.me,'');$('drAuthor').value=me;onAuthorChange();}
+  renderMembers();
 }
+/* ── 함께 출장 인원 ── */
+var memSel={},memManual=[];
+function splitNames(s){return String(s||'').split(/[,\n]/).map(function(x){return x.trim();}).filter(Boolean);}
+function reportCovers(r){return [r.author].concat(splitNames(r.members));}
+function coveredBy(name,date,exceptId){
+  return DB.reports.find(function(r){return r.date===date&&r.id!==exceptId&&reportCovers(r).indexOf(name)>=0;});
+}
+function memberCandidates(){
+  var d=$('drDate').value,sid=$('drSite').value,au=$('drAuthor').value.trim(),D=dn(d),out={};
+  if(sid&&d)DB.trips.forEach(function(t){if(t.siteId===sid&&dn(t.start)<=D&&dn(t.end)>=D&&t.name!==au)out[t.name]=1;});
+  memManual.forEach(function(n){if(n!==au)out[n]=1;});
+  Object.keys(memSel).forEach(function(n){if(memSel[n]&&n!==au)out[n]=1;});
+  return Object.keys(out).sort(byKo);
+}
+function renderMembers(){
+  var box=$('drMembers');if(!box)return;
+  var d=$('drDate').value,cands=memberCandidates(),exc=editingReport?editingReport.id:null;
+  if(!cands.length){box.innerHTML='<span class="none">'+($('drSite').value?'이 날짜에 같은 사이트로 출장 등록된 다른 인원이 없습니다':'사이트를 선택하면 같이 출장 중인 인원이 표시됩니다')+'</span>';return;}
+  box.innerHTML=cands.map(function(n){
+    var cov=coveredBy(n,d,exc),own=cov&&cov.author===n;
+    if(memSel[n]===undefined)memSel[n]=!cov;   // 아직 보고에 포함 안 된 인원은 기본 체크
+    var on=memSel[n];
+    return '<label class="mchip'+(on?' on':'')+'" title="'+(cov?esc(cov.author+'님 보고에 포함됨'):'')+'"><input type="checkbox" data-mem="'+esc(n)+'"'+(on?' checked':'')+'>'+esc(n)+(cov?'<span class="sub">'+(own?'본인 작성':'✓ '+esc(cov.author))+'</span>':'')+'</label>';
+  }).join('');
+}
+function addMemberManual(){
+  var n=$('drMemAdd').value.trim();if(!n)return;
+  if(n===$('drAuthor').value.trim())return toast('작성자 본인입니다',true);
+  if(memManual.indexOf(n)<0)memManual.push(n);memSel[n]=true;$('drMemAdd').value='';renderMembers();
+}
+function selectedMembers(){var au=$('drAuthor').value.trim();return memberCandidates().filter(function(n){return memSel[n]&&n!==au;});}
 function onAuthorChange(){
   var n=$('drAuthor').value.trim();if(!n)return;
   var p=personByName(n);if(p)$('drOrg').value=p.org;else{var o=orgOf(n);if(o)$('drOrg').value=o;}
@@ -698,12 +767,14 @@ function onAuthorChange(){
     if(!t){var T=TD();var past=DB.trips.filter(function(x){return x.name===n&&dn(x.start)<=T;}).sort(function(a,b){return b.end>a.end?1:-1;});t=past[0];}
     if(t&&siteById(t.siteId))$('drSite').value=t.siteId;
   }
+  renderMembers();
 }
 function submitReport(){
   var r={
     id:editingReport?editingReport.id:uid('r_'),
     date:$('drDate').value, siteId:$('drSite').value, author:$('drAuthor').value.trim(), org:$('drOrg').value,
     progress:$('drProgress').value.trim(), plan:$('drPlan').value.trim(), issue:$('drIssue').value.trim(),
+    members:selectedMembers().join(', '),
     createdAt:editingReport?editingReport.createdAt:new Date().toISOString()
   };
   if(!r.date)return toast('날짜를 입력하세요',true);
@@ -715,6 +786,9 @@ function submitReport(){
     if(dup&&!confirm(r.author+'님의 '+fmtFull(r.date)+' '+siteName(r.siteId)+' 보고가 이미 있습니다.\n기존 보고를 이 내용으로 덮어쓸까요?'))return;
     if(dup){r.id=dup.id;r.createdAt=dup.createdAt;}
   }
+  var dupM=splitNames(r.members).map(function(n){var c=coveredBy(n,r.date,r.id);return c?n+' → '+c.author+'님 보고':null;}).filter(Boolean);
+  if(dupM.length&&!confirm('아래 인원은 이미 다른 보고에 포함되어 있습니다.\n'+dupM.join('\n')+'\n\n그래도 함께 저장할까요?'))return;
+  splitNames(r.members).forEach(function(n){ensurePerson(n,orgOf(n));});
   ensurePerson(r.author,r.org);
   save('reports',r);
   lsSet(LSK.me,r.author);
@@ -727,10 +801,12 @@ function editReport(id){
   editingReport=r;$('drForm').classList.add('editing');$('drSubmit').textContent='수정 저장';
   $('drDate').value=r.date;$('drSite').value=r.siteId;$('drAuthor').value=r.author;$('drOrg').value=r.org||orgOf(r.author);
   $('drProgress').value=r.progress||'';$('drPlan').value=r.plan||'';$('drIssue').value=r.issue||'';
+  memSel={};memManual=splitNames(r.members);memManual.forEach(function(n){memSel[n]=true;});renderMembers();
   $('drForm').scrollIntoView({behavior:'smooth',block:'start'});
 }
 function reportText(r){
-  var t='['+fmtFull(r.date)+'] '+siteName(r.siteId)+' / '+r.author+' ('+(ORG[r.org]||'')+')\n';
+  var t='['+fmtFull(r.date)+'] '+siteName(r.siteId)+' / '+r.author+' ('+(ORG[r.org]||'')+')'+(r.members?' 외 '+splitNames(r.members).length+'명':'')+'\n';
+  if(r.members)t+='함께: '+r.members+'\n';
   t+='■ 진행상황\n'+(r.progress||'-')+'\n';
   if(r.plan)t+='■ 예정사항\n'+r.plan+'\n';
   if(r.issue)t+='■ 이슈·특이사항\n'+r.issue+'\n';
@@ -745,9 +821,9 @@ function filteredReports(){
   var from=per==='all'?-1e9:TD()-(+per)+1;
   return DB.reports.filter(function(r){
     if(fs!=='all'&&r.siteId!==fs)return false;
-    if(fp!=='all'&&r.author!==fp)return false;
+    if(fp!=='all'&&reportCovers(r).indexOf(fp)<0)return false;
     if(dn(r.date)<from)return false;
-    if(q&&[r.progress,r.plan,r.issue,r.author,siteName(r.siteId)].join(' ').toLowerCase().indexOf(q)<0)return false;
+    if(q&&[r.progress,r.plan,r.issue,r.author,r.members,siteName(r.siteId)].join(' ').toLowerCase().indexOf(q)<0)return false;
     return true;
   }).sort(function(a,b){return a.date<b.date?1:a.date>b.date?-1:byKo(siteName(a.siteId),siteName(b.siteId))||byKo(a.author,b.author);});
 }
@@ -758,6 +834,7 @@ function reportCard(r,hide){
   if(hide!=='person')h+='<span class="who">'+esc(r.author)+'</span>'+orgBadge(r.org);
   else h+=orgBadge(r.org);
   h+='<span class="tools"><button class="btn sm ghost" data-act="rcopy" data-id="'+esc(r.id)+'" title="메신저용 복사">📋</button><button class="btn sm ghost" data-act="redit" data-id="'+esc(r.id)+'">수정</button><button class="btn sm ghost" data-act="rdel" data-id="'+esc(r.id)+'" style="color:var(--bad)">삭제</button></span></div>';
+  if(r.members)h+='<div class="mem-line">👥 함께 '+splitNames(r.members).map(function(n){return '<span class="badge '+(orgOf(n)==='able'?'b-able':'b-hq')+'">'+esc(n)+'</span>';}).join('')+'</div>';
   h+='<div class="rp-sec"><div class="k p">진행상황</div><div class="v">'+esc(r.progress)+'</div></div>';
   if(r.plan)h+='<div class="rp-sec"><div class="k n">예정사항</div><div class="v">'+esc(r.plan)+'</div></div>';
   if(r.issue)h+='<div class="rp-sec"><div class="k i">이슈·특이</div><div class="v">'+esc(r.issue)+'</div></div>';
@@ -768,16 +845,161 @@ function renderTodayStrip(){
   var t=todayStr(),T=TD();
   var onTrip=DB.trips.filter(function(x){return dn(x.start)<=T&&dn(x.end)>=T&&siteRegion(x.siteId)!=='kr';});
   var names={};onTrip.forEach(function(x){names[x.name]=x;});
-  var wrote={};DB.reports.forEach(function(r){if(r.date===t)wrote[r.author]=1;});
+  var wrote={};DB.reports.forEach(function(r){if(r.date===t)reportCovers(r).forEach(function(n){wrote[n]=wrote[n]||r.author;});});
   var list=Object.keys(names).sort(byKo);
   var done=list.filter(function(n){return wrote[n];}).length;
   var h='<span class="ts-t">오늘 '+fmtFull(t)+'</span><span class="ts-n">출장중 <b>'+list.length+'</b>명 · 작성 <b style="color:var(--ok)">'+done+'</b> · 미작성 <b style="color:#c2410c">'+(list.length-done)+'</b></span>';
   if(list.length){h+='<span style="flex-basis:100%;height:0"></span>';
-    list.forEach(function(n){h+='<span class="pchip '+(wrote[n]?'done':'todo')+'" data-act="pick" data-name="'+esc(n)+'" title="'+esc(siteName(names[n].siteId))+'">'+(wrote[n]?'✓ ':'')+esc(n)+'</span>';});}
+    list.forEach(function(n){h+='<span class="pchip '+(wrote[n]?'done':'todo')+'" data-act="pick" data-name="'+esc(n)+'" title="'+esc(siteName(names[n].siteId)+(wrote[n]&&wrote[n]!==n?' · '+wrote[n]+'님 보고에 포함':''))+'">'+(wrote[n]?'✓ ':'')+esc(n)+(wrote[n]&&wrote[n]!==n?' <span style="font-weight:500;font-size:11px">('+esc(wrote[n])+')</span>':'')+'</span>';});}
   else h+='<span class="faint" style="font-size:12px">— 출장일정 탭에 일정이 등록되면 작성 현황이 표시됩니다</span>';
   $('todayStrip').innerHTML=h;
 }
+/* ── 미작성 알림 (관리자 모드 전용) ── */
+var DEF_ALERT={days:7,skipTravel:true,skipWeekend:false,startDate:'2026-11-19'};
+function isAdmin(){return lsGet(LSK.admin,false)===true;}
+function toggleAdmin(){
+  lsSet(LSK.admin,!isAdmin());
+  document.body.classList.toggle('admin',isAdmin());
+  toast(isAdmin()?'관리자 모드 ON — 미작성 알림이 표시됩니다':'관리자 모드 OFF');
+  renderAll();
+}
+function getAlertCfg(){var c=(DB.config||[]).find(function(r){return r.id==='alert';}),o={};try{o=c&&c.json?JSON.parse(c.json):{};}catch(e){}return Object.assign({},DEF_ALERT,o);}
+function ackId(date,name){return 'ack_'+date+'_'+String(name).replace(/[^\w가-힣\-]/g,'_');}
+function ackOf(date,name){var id=ackId(date,name);return (DB.acks||[]).find(function(a){return a.id===id;});}
+function isWeekend(d){var w=new Date(d*864e5).getUTCDay();return w===0||w===6;}
+function coverMap(){
+  if(_memo.cov)return _memo.cov;
+  var cov={};DB.reports.forEach(function(r){reportCovers(r).forEach(function(n){cov[r.date+'|'+n]=1;});});
+  return _memo.cov=cov;
+}
+/* 출장 1건의 일자별 작성 대상일 (알림 시작일·이동일·주말 설정 반영) */
+function tripTargetDays(t,upTo){
+  var C=getAlertCfg(),s=dn(t.start),e=dn(t.end),from=s,to=Math.min(e,upTo);
+  if(C.startDate&&dn(C.startDate)>from)from=dn(C.startDate);
+  var out=[];
+  for(var d=from;d<=to;d++){
+    if(C.skipTravel&&(d===s||d===e))continue;
+    if(C.skipWeekend&&isWeekend(d))continue;
+    out.push(d);
+  }
+  return out;
+}
+function missingReports(){
+  if(_memo.miss)return _memo.miss;
+  var C=getAlertCfg(),T=TD(),from=T-Math.max(0,+C.days||0),cov=coverMap(),out=[],seen={};
+  DB.trips.forEach(function(t){
+    if(siteRegion(t.siteId)==='kr')return;
+    tripTargetDays(t,T).forEach(function(d){
+      if(d<from)return;
+      var ds=sdn(d),k=ds+'|'+t.name;if(cov[k]||seen[k])return;seen[k]=1;
+      out.push({date:ds,name:t.name,siteId:t.siteId,today:d===T,weekend:isWeekend(d),ack:ackOf(ds,t.name)});
+    });
+  });
+  out.sort(function(a,b){return a.date<b.date?1:a.date>b.date?-1:byKo(siteName(a.siteId),siteName(b.siteId))||byKo(a.name,b.name);});
+  return _memo.miss=out;
+}
+function lateList(){return missingReports().filter(function(x){return !x.today&&!x.ack;});}
+function groupMissing(list){var g={},o=[];list.forEach(function(x){var k=x.date+'|'+x.siteId;if(!g[k]){g[k]={date:x.date,siteId:x.siteId,names:[],weekend:x.weekend};o.push(g[k]);}g[k].names.push(x.name);});return o;}
+function pbadge(n){return '<span class="badge '+(orgOf(n)==='able'?'b-able':'b-hq')+'">'+esc(n)+'</span>';}
+function missRowsHtml(groups,mode){
+  return groups.map(function(g){
+    var data=' data-date="'+esc(g.date)+'" data-site="'+esc(g.siteId)+'" data-names="'+esc(g.names.join(','))+'"';
+    var btns=mode==='acked'?'<button class="btn sm" data-act="unack"'+data+'>되돌리기</button>'
+      :'<button class="btn sm" data-act="mwrite"'+data+'>작성하기</button>'+(mode==='late'?'<button class="btn sm ghost" data-act="ack"'+data+' title="작성하지 않은 것으로 확인 처리">확인(넘김)</button>':'');
+    return '<div class="al-row"><span class="d">'+fmtMD(g.date)+' ('+wd(g.date)+')'+(g.weekend?' <span class="badge b-gray">주말</span>':'')+'</span>'+siteChip(g.siteId)+g.names.map(pbadge).join('')+'<span class="btns">'+btns+'</span></div>';
+  }).join('');
+}
+function renderAlerts(){
+  var adm=isAdmin();document.body.classList.toggle('admin',adm);
+  var b=$('bellCnt'),c=$('cntRpt'),box=$('alertBox');
+  if(!adm){b.style.display='none';c.style.display='none';box.innerHTML='';return;}
+  var late=lateList(),td=missingReports().filter(function(x){return x.today;}),n=late.length||td.length;
+  b.style.display=n?'block':'none';b.textContent=n;b.className='bdg'+(late.length?'':' or');
+  $('bell').title=late.length?'지난 일일보고 미작성 '+late.length+'건':td.length?'오늘 작성 전 '+td.length+'명':'미작성 없음';
+  c.style.display=late.length?'':'none';c.textContent=late.length;
+  if(UI.tab!=='report')return;
+  if(!late.length){box.innerHTML='';return;}
+  var gr=groupMissing(late);
+  box.innerHTML='<div class="al-h">⚠ 일일보고 미작성 '+late.length+'건 <span class="muted" style="font-weight:600;font-size:12px">관리자 · 최근 '+getAlertCfg().days+'일</span><button class="btn sm act" data-act="bell">전체 보기 · 확인 처리</button></div>'
+    +missRowsHtml(gr.slice(0,3),'late')+(gr.length>3?'<div class="al-row"><span class="muted" style="font-size:12px">외 '+(gr.length-3)+'개 항목</span></div>':'');
+}
+var admTab='miss',admTripFilter='done';
+function openMissing(t){
+  if(t)admTab=t;
+  var head='<div class="seg" style="margin-bottom:12px" id="admSeg"><button data-act="admtab" data-v="miss"'+(admTab==='miss'?' class="on"':'')+'>🔔 미작성 알림</button><button data-act="admtab" data-v="trip"'+(admTab==='trip'?' class="on"':'')+'>📊 출장별 미작성 일수</button></div>';
+  openModal('관리자 · 일일보고 점검',head+(admTab==='trip'?tripStatsHtml():missHtml()),'<button class="btn" data-act="alertcfg">알림 설정</button><button class="btn pri" data-act="mclose">닫기</button>',true);
+}
+function missHtml(){
+  var m=missingReports(),late=lateList(),td=m.filter(function(x){return x.today;}),acked=m.filter(function(x){return !x.today&&x.ack;});
+  var wk=late.filter(function(x){return x.weekend;});
+  var b='';
+  if(!late.length&&!td.length)b+='<div class="empty" style="padding:24px"><b>미작성 일일보고가 없습니다 👍</b>최근 '+getAlertCfg().days+'일 · '+fmtDot(getAlertCfg().startDate||'')+' 이후 기준</div>';
+  if(late.length)b+='<div class="al-h" style="color:var(--bad)">⚠ 지난 날짜 미작성 '+late.length+'건'+(wk.length?'<button class="btn sm act" data-act="ackweekend">주말 '+wk.length+'건 모두 확인</button>':'')+'</div><div class="alert-box" style="margin-bottom:14px">'+missRowsHtml(groupMissing(late),'late')+'</div>';
+  if(td.length)b+='<div class="al-h" style="color:#c2410c">🕒 오늘 아직 작성 전 '+td.length+'명</div><div class="alert-box today" style="margin-bottom:14px">'+missRowsHtml(groupMissing(td),'today')+'</div>';
+  if(acked.length)b+='<div class="al-h" style="color:var(--muted)">✓ 확인 처리(넘김) '+acked.length+'건</div><div class="alert-box done">'+missRowsHtml(groupMissing(acked),'acked')+'</div>';
+  b+='<p class="note">· 출장 등록 인원 중 그날 본인이 작성했거나 대표 보고의 함께 출장 인원에 포함되지 않은 경우입니다. 국내 사이트는 제외합니다.<br>· <b>확인(넘김)</b>: 주말·휴무 등으로 작성하지 않은 것을 확인한 경우. 알림 숫자에서 빠지고 출장별 집계에는 \'확인\'으로 따로 표시됩니다.</p>';
+  return b;
+}
+function tripStats(t){
+  var T=TD(),days=tripTargetDays(t,T),cov=coverMap(),w=0,a=0,m=0,mw=0;
+  days.forEach(function(d){var ds=sdn(d);if(cov[ds+'|'+t.name])w++;else if(ackOf(ds,t.name))a++;else{m++;if(isWeekend(d))mw++;}});
+  return {target:days.length,written:w,acked:a,missing:m,missWeekend:mw};
+}
+function tripStatsHtml(){
+  var T=TD();
+  var list=DB.trips.filter(function(t){
+    if(siteRegion(t.siteId)==='kr'||dn(t.start)>T)return false;
+    if(admTripFilter==='done'&&dn(t.end)>=T)return false;
+    if(admTripFilter==='go'&&dn(t.end)<T)return false;
+    return true;
+  }).map(function(t){return {t:t,s:tripStats(t)};}).filter(function(x){return x.s.target>0;});
+  list.sort(function(a,b){return b.s.missing-a.s.missing||dn(b.t.end)-dn(a.t.end);});
+  var h='<div class="toolbar" style="margin-bottom:8px"><div class="seg">'+[['done','종료된 출장'],['go','진행 중'],['all','전체']].map(function(o){return '<button data-act="admtf" data-v="'+o[0]+'"'+(admTripFilter===o[0]?' class="on"':'')+'>'+o[1]+'</button>';}).join('')+'</div><span class="muted" style="font-size:12px">'+fmtDot(getAlertCfg().startDate||'')+' 이후 · '+(getAlertCfg().skipTravel?'이동일 제외':'이동일 포함')+'</span></div>';
+  if(!list.length)return h+'<div class="empty" style="padding:24px"><b>집계할 출장이 없습니다</b>알림 시작일 이후 해외 출장이 끝나면 여기에 표시됩니다.</div>';
+  h+='<div style="overflow:auto"><table class="xt"><thead><tr><th>출장자</th><th>사이트</th><th>기간</th><th class="num">대상일</th><th class="num">작성</th><th class="num">확인(넘김)</th><th class="num">미작성</th><th class="num">작성률</th></tr></thead><tbody>';
+  list.forEach(function(x){var t=x.t,s=x.s,rate=Math.round((s.written)/s.target*100);
+    h+='<tr><td><b>'+esc(t.name)+'</b> '+orgBadge(t.org)+'</td><td>'+siteChip(t.siteId)+'</td><td style="font-size:12px">'+fmtDot(t.start).slice(2)+' ~ '+fmtDot(t.end).slice(2)+(dn(t.end)>=T?' <span class="badge b-go">진행중</span>':'')+'</td>'
+      +'<td class="num">'+s.target+'</td><td class="num" style="color:var(--ok)"><b>'+s.written+'</b></td><td class="num muted">'+s.acked+'</td>'
+      +'<td class="num"><b style="color:'+(s.missing?'var(--bad)':'inherit')+'">'+s.missing+'</b>'+(s.missWeekend?' <span class="faint" style="font-size:11px">(주말 '+s.missWeekend+')</span>':'')+'</td>'
+      +'<td class="num"><b style="color:'+(rate>=90?'var(--ok)':rate>=70?'var(--warn)':'var(--bad)')+'">'+rate+'%</b></td></tr>';});
+  return h+'</tbody></table></div><p class="note">대상일 = 출장 기간 중 일일보고가 필요한 날(알림 시작일 이후, 설정에 따라 이동일·주말 제외). 작성 = 본인 작성 또는 함께 출장 인원으로 포함된 날. 작성률 = 작성 ÷ 대상일.</p>';
+}
+function ackGroup(date,names,on){
+  names.forEach(function(n){var id=ackId(date,n);
+    if(on){if(!ackOf(date,n))save('acks',{id:id,date:date,name:n,note:''});}
+    else if(ackOf(date,n))remove('acks',id);});
+  openMissing();
+}
+function ackWeekend(){
+  var wk=lateList().filter(function(x){return x.weekend;});
+  if(!confirm('주말 미작성 '+wk.length+'건을 모두 확인(넘김) 처리할까요?'))return;
+  wk.forEach(function(x){save('acks',{id:ackId(x.date,x.name),date:x.date,name:x.name,note:'주말'});});
+  openMissing();toast(wk.length+'건 확인 처리되었습니다');
+}
+function writeMissing(date,site,names){
+  closeModal();if(UI.tab!=='report')switchTab('report');
+  resetReportForm(true);
+  var me=lsGet(LSK.me,''),au=names.indexOf(me)>=0?me:names[0];
+  $('drDate').value=date;$('drSite').value=site;$('drAuthor').value=au;
+  var p=personByName(au);if(p)$('drOrg').value=p.org;
+  memSel={};memManual=[];names.forEach(function(n){if(n!==au)memSel[n]=true;});renderMembers();
+  $('drForm').scrollIntoView({behavior:'smooth',block:'start'});$('drProgress').focus();
+}
+function openAlertCfg(){
+  var C=getAlertCfg();
+  var b='<div class="fg"><label class="lbl">알림 시작일<span class="hint">이 날짜 이전은 확인하지 않음 (운영 시작일)</span></label><input class="inp" type="date" id="acStart" value="'+esc(C.startDate||'')+'" style="width:180px"></div>'
+   +'<div class="fg"><label class="lbl">알림 확인 기간<span class="hint">오늘 포함 최근 며칠까지 알림에 표시 (출장별 집계는 전체 기간)</span></label><input class="inp" type="number" id="acDays" min="1" max="60" value="'+C.days+'" style="width:120px"></div>'
+   +'<div class="fg"><label class="chk"><input type="checkbox" id="acTravel"'+(C.skipTravel?' checked':'')+'>출발일·귀국일(이동일)은 제외</label></div>'
+   +'<div class="fg"><label class="chk"><input type="checkbox" id="acWeekend"'+(C.skipWeekend?' checked':'')+'>주말(토·일)은 아예 대상에서 제외</label><div class="note" style="margin:2px 0 0 22px">끄면 주말도 알림에 나오고, 쉬었으면 \'확인(넘김)\'으로 처리합니다.</div></div>';
+  openModal('알림 설정',b,'<button class="btn" data-act="bell">취소</button><button class="btn pri" data-act="acsave">저장</button>');
+}
+function saveAlertCfg(){
+  var d=Math.max(1,Math.min(60,+$('acDays').value||7));
+  save('config',{id:'alert',json:JSON.stringify({days:d,startDate:$('acStart').value,skipTravel:$('acTravel').checked,skipWeekend:$('acWeekend').checked})});
+  toast('알림 설정이 저장되었습니다');openMissing();
+}
 function renderReports(){
+  renderAlerts();
   renderTodayStrip();
   document.querySelectorAll('#drMode button').forEach(function(b){b.classList.toggle('on',b.dataset.v===UI.drMode);});
   var list=filteredReports(),el=$('drList');
@@ -804,8 +1026,8 @@ function groupCopy(k){
   copyText(list.map(reportText).join('\n'));
 }
 function exportCsv(){
-  var rows=[['날짜','요일','사이트','출장자','소속','진행상황','예정사항','이슈·특이사항','최종저장']];
-  filteredReports().forEach(function(r){rows.push([r.date,wd(r.date),siteName(r.siteId),r.author,ORG[r.org]||'',r.progress,r.plan,r.issue,r.updatedAt||'']);});
+  var rows=[['날짜','요일','사이트','작성자','소속','함께 출장 인원','진행상황','예정사항','이슈·특이사항','최종저장']];
+  filteredReports().forEach(function(r){rows.push([r.date,wd(r.date),siteName(r.siteId),r.author,ORG[r.org]||'',r.members||'',r.progress,r.plan,r.issue,r.updatedAt||'']);});
   var csv='﻿'+rows.map(function(r){return r.map(function(c){c=String(c==null?'':c);if(/^[=+\-@]/.test(c))c="'"+c;return '"'+c.replace(/"/g,'""')+'"';}).join(',');}).join('\r\n');
   var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='일일보고_'+todayStr()+'.csv';a.click();
 }
@@ -1250,8 +1472,8 @@ function loadSample(){
   P.forEach(function(p){if(!personByName(p[0]))DB.persons.push({id:uid('p_'),name:p[0],org:p[1],position:p[2],role:p[3],note:''});});
   var tr=[['김성민','hq','ESHD','셋업',-200,-120],['김성민','hq','ESHD','셋업',-40,25],['강민호','hq','ESMI','양산대응',-10,40],['이준호','able','ESHD','셋업',-150,-70],['이준호','able','ESHD','셋업',-30,45],['정다은','able','ESHG','셋업',-20,50],['최현수','able','ESOT','양산대응',-5,60],['한지훈','able','ESHD','셋업',20,100],['박우철','hq','ESHD','PM',14,24],['강민호','hq','ESHD','셋업',-300,-215],['강민호','hq','WA','안정화',-120,-40],['한지훈','able','ESNA','개조',-90,-60],['정다은','able','ESOT','셋업',-200,-120],['최현수','able','ESHD','셋업',70,140],['김성민','hq','ESHD','셋업',26,60]];
   tr.forEach(function(t){DB.trips.push({id:uid('t_'),name:t[0],org:t[1],siteId:sid(t[2]),task:t[3],start:sdn(T+t[4]),end:sdn(T+t[5]),note:'',updatedAt:new Date().toISOString()});});
-  var rp=[['김성민','hq','ESHD',0,'3호기 Calibration 완료\n4호기 I/O Check (Vision) 진행 70%','4호기 I/O Check 마무리\nGRR 샘플 준비','고객 요청: 검사 이미지 저장 경로 변경 검토'],['이준호','able','ESHD',0,'2호기 케이블 포설 및 Turn On (Ele.) 완료','2호기 CDA Turn On',''],['강민호','hq','ESMI',-1,'양산 모니터링, 과검 2건 분석','Recipe 파라미터 조정 적용','Light 컨트롤러 1EA 교체 필요 — 본사 발송 요청'],['정다은','able','ESHG',-1,'DNC 라인 설비 Installation 지원','Turn On 준비',''],['김성민','hq','ESHD',-1,'3호기 Calibration 진행','Calibration 완료','']];
-  rp.forEach(function(r){DB.reports.push({id:uid('r_'),date:sdn(T+r[3]),siteId:sid(r[2]),author:r[0],org:r[1],progress:r[4],plan:r[5],issue:r[6],createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});});
+  var rp=[['김성민','hq','ESHD',-2,'3호기 Calibration 준비','Calibration 착수','','이준호, 한지훈'],['김성민','hq','ESHD',0,'3호기 Calibration 완료\n4호기 I/O Check (Vision) 진행 70%','4호기 I/O Check 마무리\nGRR 샘플 준비','고객 요청: 검사 이미지 저장 경로 변경 검토'],['이준호','able','ESHD',0,'2호기 케이블 포설 및 Turn On (Ele.) 완료','2호기 CDA Turn On',''],['강민호','hq','ESMI',-1,'양산 모니터링, 과검 2건 분석','Recipe 파라미터 조정 적용','Light 컨트롤러 1EA 교체 필요 — 본사 발송 요청'],['정다은','able','ESHG',-1,'DNC 라인 설비 Installation 지원','Turn On 준비',''],['김성민','hq','ESHD',-1,'3호기 Calibration 진행','Calibration 완료','']];
+  rp.forEach(function(r){DB.reports.push({id:uid('r_'),date:sdn(T+r[3]),siteId:sid(r[2]),author:r[0],org:r[1],progress:r[4],plan:r[5],issue:r[6],members:r[7]||'',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});});
   persistLocal();closeModal();renderAll();toast('샘플 데이터가 추가되었습니다');
 }
 
@@ -1275,6 +1497,16 @@ document.addEventListener('click',function(e){
     case 'psort':var k=el.dataset.k;if(UI.pmSort===k)UI.pmAsc=!UI.pmAsc;else{UI.pmSort=k;UI.pmAsc=(k==='name'||k==='exc'||k==='inc');}saveUI();renderPmBody();break;
     case 'pexp':pmExpanded[el.dataset.name]=!pmExpanded[el.dataset.name];renderPmBody();break;
     case 'rules':openRules();break;
+    case 'bell':openMissing();break;
+    case 'mwrite':writeMissing(el.dataset.date,el.dataset.site,el.dataset.names.split(','));break;
+    case 'alertcfg':openAlertCfg();break;
+    case 'acsave':saveAlertCfg();break;
+    case 'ack':ackGroup(el.dataset.date,el.dataset.names.split(','),true);break;
+    case 'unack':ackGroup(el.dataset.date,el.dataset.names.split(','),false);break;
+    case 'ackweekend':ackWeekend();break;
+    case 'admtab':openMissing(el.dataset.v);break;
+    case 'admtf':admTripFilter=el.dataset.v;openMissing('trip');break;
+    case 'admoff':toggleAdmin();break;
     case 'rsave':saveRules();break;
     case 'padd':addPerson();break;
     case 'psave':savePersons();break;
@@ -1292,6 +1524,16 @@ $('btnSettings').onclick=openSettings;$('bannerSet').onclick=openSettings;
 $('drSubmit').onclick=submitReport;
 $('drCancelEdit').onclick=function(){resetReportForm(true);};
 $('drAuthor').addEventListener('change',onAuthorChange);
+$('bell').onclick=function(){openMissing();};
+(function(){var lg=$('logo'),tm=null;
+  lg.addEventListener('click',function(e){if(e.ctrlKey||e.metaKey){e.preventDefault();toggleAdmin();}});
+  lg.addEventListener('touchstart',function(){tm=setTimeout(function(){tm=null;toggleAdmin();},1500);},{passive:true});
+  ['touchend','touchmove','touchcancel'].forEach(function(ev){lg.addEventListener(ev,function(){if(tm){clearTimeout(tm);tm=null;}});});
+})();
+['drDate','drSite'].forEach(function(k){$(k).addEventListener('change',function(){memSel={};renderMembers();});});
+$('drMembers').addEventListener('change',function(e){var n=e.target.dataset.mem;if(n===undefined)return;memSel[n]=e.target.checked;renderMembers();});
+$('drMemAddBtn').onclick=addMemberManual;
+$('drMemAdd').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();addMemberManual();}});
 $('drMode').onclick=function(e){var b=e.target.closest('button');if(!b)return;UI.drMode=b.dataset.v;saveUI();renderReports();};
 ['drfSite','drfPerson','drfPeriod'].forEach(function(k){$(k).onchange=renderReports;});
 $('drfQ').oninput=renderReports;
