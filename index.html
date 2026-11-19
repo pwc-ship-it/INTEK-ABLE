@@ -349,7 +349,7 @@ body.admin .adm-badge{display:inline-flex!important;background:#0f172a;color:#ff
           <div class="fg"><label class="lbl">출장자(담당자) <span class="req">*</span></label><input class="inp" id="drAuthor" list="dlPersons" placeholder="이름" autocomplete="off"></div>
           <div class="fg"><label class="lbl">소속</label><select class="sel" id="drOrg"><option value="hq">본사</option><option value="able">ABLE</option></select></div>
         </div>
-        <div class="fg"><label class="lbl">함께 출장 인원<span class="hint">대표 1인이 작성 시 같이 간 인원 체크</span></label>
+        <div class="fg"><label class="lbl">함께 출장 인원<span class="hint">대표 1인이 작성 시 같이 간 ABLE 인원 체크</span></label>
           <div class="mem-box" id="drMembers"></div>
           <div style="display:flex;gap:6px;margin-top:6px"><input class="inp" id="drMemAdd" list="dlPersons" placeholder="다른 인원 추가 (이름 입력 후 Enter)" autocomplete="off" style="height:34px;font-size:13px"><button class="btn sm" id="drMemAddBtn" type="button">추가</button></div>
         </div>
@@ -740,12 +740,12 @@ function memberCandidates(){
   if(sid&&d)DB.trips.forEach(function(t){if(t.siteId===sid&&dn(t.start)<=D&&dn(t.end)>=D&&t.name!==au)out[t.name]=1;});
   memManual.forEach(function(n){if(n!==au)out[n]=1;});
   Object.keys(memSel).forEach(function(n){if(memSel[n]&&n!==au)out[n]=1;});
-  return Object.keys(out).sort(byKo);
+  return Object.keys(out).filter(function(n){return orgOf(n)==='able';}).sort(byKo);   // 동반 출장자: ABLE(외주) 인원만
 }
 function renderMembers(){
   var box=$('drMembers');if(!box)return;
   var d=$('drDate').value,cands=memberCandidates(),exc=editingReport?editingReport.id:null;
-  if(!cands.length){box.innerHTML='<span class="none">'+($('drSite').value?'이 날짜에 같은 사이트로 출장 등록된 다른 인원이 없습니다':'사이트를 선택하면 같이 출장 중인 인원이 표시됩니다')+'</span>';return;}
+  if(!cands.length){box.innerHTML='<span class="none">'+($('drSite').value?'이 날짜에 같은 사이트로 출장 등록된 다른 ABLE 인원이 없습니다':'사이트를 선택하면 같이 출장 중인 인원이 표시됩니다')+'</span>';return;}
   box.innerHTML=cands.map(function(n){
     var cov=coveredBy(n,d,exc),own=cov&&cov.author===n;
     if(memSel[n]===undefined)memSel[n]=!cov;   // 아직 보고에 포함 안 된 인원은 기본 체크
@@ -756,6 +756,7 @@ function renderMembers(){
 function addMemberManual(){
   var n=$('drMemAdd').value.trim();if(!n)return;
   if(n===$('drAuthor').value.trim())return toast('작성자 본인입니다',true);
+  if(orgOf(n)!=='able')return toast(n+'님은 본사 인원입니다 — 동반 출장자는 ABLE 인원만 추가할 수 있습니다',true);
   if(memManual.indexOf(n)<0)memManual.push(n);memSel[n]=true;$('drMemAdd').value='';renderMembers();
 }
 function selectedMembers(){var au=$('drAuthor').value.trim();return memberCandidates().filter(function(n){return memSel[n]&&n!==au;});}
