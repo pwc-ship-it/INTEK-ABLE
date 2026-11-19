@@ -888,7 +888,7 @@ function missingReports(){
   if(_memo.miss)return _memo.miss;
   var C=getAlertCfg(),T=TD(),from=T-Math.max(0,+C.days||0),cov=coverMap(),out=[],seen={};
   DB.trips.forEach(function(t){
-    if(siteRegion(t.siteId)==='kr')return;
+    if(siteRegion(t.siteId)==='kr'||!needsReport(t))return;
     tripTargetDays(t,T).forEach(function(d){
       if(d<from)return;
       var ds=sdn(d),k=ds+'|'+t.name;if(cov[k]||seen[k])return;seen[k]=1;
@@ -898,6 +898,8 @@ function missingReports(){
   out.sort(function(a,b){return a.date<b.date?1:a.date>b.date?-1:byKo(siteName(a.siteId),siteName(b.siteId))||byKo(a.name,b.name);});
   return _memo.miss=out;
 }
+/* 미작성 점검 대상: 외주(ABLE) 인원만 — 본사 인원 제외 */
+function needsReport(t){var p=personByName(t.name);return (p?p.org:t.org)==='able';}
 function lateList(){return missingReports().filter(function(x){return !x.today&&!x.ack;});}
 function groupMissing(list){var g={},o=[];list.forEach(function(x){var k=x.date+'|'+x.siteId;if(!g[k]){g[k]={date:x.date,siteId:x.siteId,names:[],weekend:x.weekend};o.push(g[k]);}g[k].names.push(x.name);});return o;}
 function pbadge(n){return '<span class="badge '+(orgOf(n)==='able'?'b-able':'b-hq')+'">'+esc(n)+'</span>';}
@@ -937,7 +939,7 @@ function missHtml(){
   if(late.length)b+='<div class="al-h" style="color:var(--bad)">⚠ 지난 날짜 미작성 '+late.length+'건'+(wk.length?'<button class="btn sm act" data-act="ackweekend">주말 '+wk.length+'건 모두 확인</button>':'')+'</div><div class="alert-box" style="margin-bottom:14px">'+missRowsHtml(groupMissing(late),'late')+'</div>';
   if(td.length)b+='<div class="al-h" style="color:#c2410c">🕒 오늘 아직 작성 전 '+td.length+'명</div><div class="alert-box today" style="margin-bottom:14px">'+missRowsHtml(groupMissing(td),'today')+'</div>';
   if(acked.length)b+='<div class="al-h" style="color:var(--muted)">✓ 확인 처리(넘김) '+acked.length+'건</div><div class="alert-box done">'+missRowsHtml(groupMissing(acked),'acked')+'</div>';
-  b+='<p class="note">· 출장 등록 인원 중 그날 본인이 작성했거나 대표 보고의 함께 출장 인원에 포함되지 않은 경우입니다. 국내 사이트는 제외합니다.<br>· <b>확인(넘김)</b>: 주말·휴무 등으로 작성하지 않은 것을 확인한 경우. 알림 숫자에서 빠지고 출장별 집계에는 \'확인\'으로 따로 표시됩니다.</p>';
+  b+='<p class="note">· <b>ABLE(외주) 인원만</b> 점검합니다(본사 인원 제외). 출장 등록 인원 중 그날 본인이 작성했거나 대표 보고의 함께 출장 인원에 포함되지 않은 경우입니다. 국내 사이트는 제외합니다.<br>· <b>확인(넘김)</b>: 주말·휴무 등으로 작성하지 않은 것을 확인한 경우. 알림 숫자에서 빠지고 출장별 집계에는 \'확인\'으로 따로 표시됩니다.</p>';
   return b;
 }
 function tripStats(t){
@@ -948,7 +950,7 @@ function tripStats(t){
 function tripStatsHtml(){
   var T=TD();
   var list=DB.trips.filter(function(t){
-    if(siteRegion(t.siteId)==='kr'||dn(t.start)>T)return false;
+    if(siteRegion(t.siteId)==='kr'||dn(t.start)>T||!needsReport(t))return false;
     if(admTripFilter==='done'&&dn(t.end)>=T)return false;
     if(admTripFilter==='go'&&dn(t.end)<T)return false;
     return true;
@@ -962,7 +964,7 @@ function tripStatsHtml(){
       +'<td class="num">'+s.target+'</td><td class="num" style="color:var(--ok)"><b>'+s.written+'</b></td><td class="num muted">'+s.acked+'</td>'
       +'<td class="num"><b style="color:'+(s.missing?'var(--bad)':'inherit')+'">'+s.missing+'</b>'+(s.missWeekend?' <span class="faint" style="font-size:11px">(주말 '+s.missWeekend+')</span>':'')+'</td>'
       +'<td class="num"><b style="color:'+(rate>=90?'var(--ok)':rate>=70?'var(--warn)':'var(--bad)')+'">'+rate+'%</b></td></tr>';});
-  return h+'</tbody></table></div><p class="note">대상일 = 출장 기간 중 일일보고가 필요한 날(알림 시작일 이후, 설정에 따라 이동일·주말 제외). 작성 = 본인 작성 또는 함께 출장 인원으로 포함된 날. 작성률 = 작성 ÷ 대상일.</p>';
+  return h+'</tbody></table></div><p class="note">ABLE(외주) 인원 출장만 집계합니다. 대상일 = 출장 기간 중 일일보고가 필요한 날(알림 시작일 이후, 설정에 따라 이동일·주말 제외). 작성 = 본인 작성 또는 함께 출장 인원으로 포함된 날. 작성률 = 작성 ÷ 대상일.</p>';
 }
 function ackGroup(date,names,on){
   names.forEach(function(n){var id=ackId(date,n);
@@ -1248,7 +1250,7 @@ function renderPmTools(){
       +'<label class="lbl2">필요 일수<input type="number" class="inp" id="fDays" min="1" max="365" value="'+esc(UI.fDays||R.target)+'" style="width:80px"></label>'
       +'<label class="lbl2">정렬<select class="sel" id="fSort"><option value="max">체류 가능일 많은 순</option><option value="name"'+(UI.fSort==='name'?' selected':'')+'>이름순</option></select></label>';
   }
-  h+='<div class="spacer"></div><button class="btn" id="pmManage">👥 인원 관리</button>';
+  h+='<div class="spacer"></div><button class="btn" data-act="import">⬆ 미국 이력 일괄 입력</button><button class="btn" id="pmManage">👥 인원 관리</button>';
   $('pmTools').innerHTML=h;
   $('pmQ').oninput=renderPmBody;
   $('pmOrg').onclick=function(e){var b=e.target.closest('button');if(!b)return;UI.pmOrg=b.dataset.v;this.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x===b);});renderPmBody();};
@@ -1437,6 +1439,84 @@ function addPerson(){
 }
 
 
+/* ══════════ 미국 출장 이력 일괄 입력 (I-94 기준) ══════════ */
+var HIST_SITE='미국(이전 이력)';
+function saveMany(list){ // list: [{type,rec}] — 한 번에 반영 후 1회 렌더
+  if(!list.length)return;
+  list.forEach(function(x){x.rec.updatedAt=new Date().toISOString();var arr=DB[x.type],i=arr.findIndex(function(r){return r.id===x.rec.id;});if(i>=0)arr[i]=x.rec;else arr.push(x.rec);});
+  persistLocal();renderAll();
+  if(!isRemote())return;
+  list.forEach(function(x){pending.push({action:'upsert',type:x.type,record:x.rec});});lsSet(LSK.pend,pending);syncLabel();
+  flushPending().then(function(){syncErr=false;lastSync=new Date();syncLabel();toast('서버 저장 완료 ('+list.length+'건)');})
+  .catch(function(e){syncErr=true;syncLabel();toast('서버 저장 실패 — 기기에 보관 후 자동 재전송합니다 ('+e.message+')',true);});
+}
+function parseDate(v){
+  v=String(v||'').trim().replace(/\s/g,'');if(!v)return '';
+  var m=v.match(/^(\d{2,4})[.\-\/년](\d{1,2})[.\-\/월](\d{1,2})일?\.?$/);if(!m)return null;
+  var y=+m[1];if(y<100)y+=2000;var mo=+m[2],d=+m[3];
+  if(mo<1||mo>12||d<1||d>31)return null;
+  var s=y+'-'+pad(mo)+'-'+pad(d);return sdn(dn(s))===s?s:null;
+}
+function parseOrg(v){v=String(v||'').trim().toLowerCase();if(!v)return '';if(/able|외주|에이블/.test(v))return 'able';if(/본사|hq|인텍/.test(v))return 'hq';return '';}
+function parseHistory(txt){
+  var rows=[];
+  String(txt||'').split(/\r?\n/).forEach(function(line,i){
+    if(!line.trim())return;
+    var c=line.indexOf('\t')>=0?line.split('\t'):line.split(',');c=c.map(function(x){return x.trim();});
+    if(i===0&&/이름|name/i.test(c[0]))return; // 헤더 행
+    var r={line:i+1,name:c[0]||'',start:parseDate(c[1]),end:parseDate(c[2]),siteTxt:c[3]||'',org:parseOrg(c[4])||'',note:c[5]||'',err:'',warn:''};
+    if(!r.name)r.err='이름 없음';
+    else if(!r.start||!r.end)r.err='날짜 형식 오류';
+    else if(dn(r.end)<dn(r.start))r.err='귀국일이 출발일보다 빠름';
+    if(!r.err){
+      var st=r.siteTxt?DB.sites.find(function(s){return s.name.toLowerCase()===r.siteTxt.toLowerCase();}):null;
+      if(r.siteTxt&&!st)r.warn='사이트 \''+r.siteTxt+'\' 없음 → '+HIST_SITE;
+      else if(st&&st.region!=='us')r.warn=st.name+'은(는) 미국 사이트가 아님 (미국 계산 제외)';
+      r.site=st||null;
+      if(!r.org){var p=personByName(r.name);r.org=p?p.org:'able';}
+      var ov=DB.trips.find(function(t){return t.name===r.name&&dn(t.start)<=dn(r.end)&&dn(t.end)>=dn(r.start);});
+      if(ov){r.err='기존 출장과 기간 겹침 ('+siteName(ov.siteId)+' '+fmtMD(ov.start)+'~'+fmtMD(ov.end)+')';}
+    }
+    rows.push(r);
+  });
+  // 붙여넣은 행끼리 겹침
+  rows.forEach(function(a,i){if(a.err)return;rows.slice(0,i).forEach(function(b){if(!b.err&&b.name===a.name&&dn(b.start)<=dn(a.end)&&dn(b.end)>=dn(a.start))a.err='붙여넣은 '+b.line+'행과 기간 겹침';});});
+  return rows;
+}
+function openImport(){
+  var b='<p style="margin:0 0 8px;font-size:13px">엑셀에서 아래 순서의 열을 <b>복사해서 붙여넣기</b> 하세요. (탭 또는 쉼표 구분, 첫 줄 제목행은 자동 제외)</p>'
+   +'<div class="check-box" style="margin-bottom:10px;font-size:12.5px"><b>이름 | 출발일 | 귀국일 | 사이트(선택) | 소속(선택) | 비고(선택)</b><br>'
+   +'<span class="muted">예) 윤종훈⇥2026-01-02⇥2026-03-19⇥ESHD⇥ABLE<br>· 날짜: 2026-01-02 / 2026.1.2 / 26.01.02 모두 가능 · 사이트를 비우면 \''+HIST_SITE+'\'(지역: 미국)으로 등록<br>· 소속을 비우면 인원 관리의 소속, 없으면 ABLE</span></div>'
+   +'<textarea class="ta" id="impTxt" rows="7" placeholder="여기에 붙여넣기"></textarea>'
+   +'<div style="margin:8px 0"><button class="btn" data-act="impcheck">미리보기 / 검사</button></div><div id="impPrev"></div>'
+   +'<p class="note">· I-94 기준 <b>최근 12개월 이내</b>의 미국 체류만 넣으면 충분합니다(그 이전은 계산에 영향 없음).<br>· 이 이력은 미국 체류일·출장 가능일 계산에 반영되고, 일일보고 미작성 점검에는 포함되지 않습니다(알림 시작일 이전).</p>';
+  openModal('⬆ 미국 출장 이력 일괄 입력',b,'<button class="btn" data-act="mclose">닫기</button><button class="btn pri" data-act="impsave" id="impSave" disabled>등록</button>',true);
+}
+var impRows=[];
+function checkImport(){
+  impRows=parseHistory($('impTxt').value);
+  var ok=impRows.filter(function(r){return !r.err;});
+  if(!impRows.length){$('impPrev').innerHTML='<span class="muted">붙여넣은 내용이 없습니다.</span>';$('impSave').disabled=true;return;}
+  var h='<div style="font-size:13px;margin-bottom:6px">총 '+impRows.length+'행 · <b style="color:var(--ok)">등록 가능 '+ok.length+'</b>'+(impRows.length-ok.length?' · <b style="color:var(--bad)">오류 '+(impRows.length-ok.length)+' (제외됨)</b>':'')+'</div>'
+   +'<div style="overflow:auto;max-height:260px"><table class="mtable"><thead><tr><th>행</th><th>이름</th><th>소속</th><th>출발</th><th>귀국</th><th>일수</th><th>사이트</th><th>확인</th></tr></thead><tbody>';
+  impRows.forEach(function(r){
+    h+='<tr style="'+(r.err?'background:#fff5f5':'')+'"><td class="faint">'+r.line+'</td><td><b>'+esc(r.name)+'</b></td><td>'+(r.org?orgBadge(r.org):'')+'</td><td>'+esc(r.start||'')+'</td><td>'+esc(r.end||'')+'</td><td>'+(r.err?'':days(r.start,r.end))+'</td><td>'+esc(r.site?r.site.name:(r.err?r.siteTxt:HIST_SITE))+'</td>'
+      +'<td style="font-size:12px;color:'+(r.err?'var(--bad)':r.warn?'var(--warn)':'var(--ok)')+'">'+esc(r.err||r.warn||'OK')+'</td></tr>';});
+  $('impPrev').innerHTML=h+'</tbody></table></div>';
+  $('impSave').disabled=!ok.length;$('impSave').textContent=ok.length?ok.length+'건 등록':'등록';
+}
+function saveImport(){
+  var ok=impRows.filter(function(r){return !r.err;});if(!ok.length)return;
+  var list=[],hs=DB.sites.find(function(s){return s.name===HIST_SITE;});
+  if(!hs&&ok.some(function(r){return !r.site;})){hs={id:uid('site_'),name:HIST_SITE,region:'us',color:'#94a3b8',order:999};list.push({type:'sites',rec:hs});}
+  var newP={};
+  ok.forEach(function(r){
+    if(!personByName(r.name)&&!newP[r.name]){newP[r.name]=1;list.push({type:'persons',rec:{id:uid('p_'),name:r.name,org:r.org,position:'',role:'',note:''}});}
+    list.push({type:'trips',rec:{id:uid('t_'),name:r.name,org:r.org,siteId:(r.site||hs).id,task:'이전 이력',start:r.start,end:r.end,note:r.note||'I-94 이력'}});
+  });
+  saveMany(list);closeModal();toast(ok.length+'건의 출장 이력이 등록되었습니다');
+}
+
 /* ══════════ 설정 ══════════ */
 function openSettings(){
   var b='<div class="fg"><label class="lbl">Apps Script 웹앱 URL<span class="hint">배포 → 웹 앱 URL (…/exec)</span></label><input class="inp" id="setUrl" value="'+esc(lsGet(LSK.api,'')||'')+'" placeholder="'+(CONFIG.API_URL?'(코드에 기본 URL 설정됨 — 비워두면 기본값 사용)':'https://script.google.com/macros/s/…/exec')+'"></div>'
@@ -1504,6 +1584,9 @@ document.addEventListener('click',function(e){
     case 'ack':ackGroup(el.dataset.date,el.dataset.names.split(','),true);break;
     case 'unack':ackGroup(el.dataset.date,el.dataset.names.split(','),false);break;
     case 'ackweekend':ackWeekend();break;
+    case 'import':openImport();break;
+    case 'impcheck':checkImport();break;
+    case 'impsave':saveImport();break;
     case 'admtab':openMissing(el.dataset.v);break;
     case 'admtf':admTripFilter=el.dataset.v;openMissing('trip');break;
     case 'admoff':toggleAdmin();break;
